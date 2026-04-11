@@ -318,7 +318,7 @@ class SourceNode extends GraphNode {
         }
         if (time >= this._stopTime) {
             clearTexture(this._gl, this._texture);
-            this._triggerCallbacks("ended");
+            if (this._state !== STATE.ended) this._triggerCallbacks("ended");
             this._state = STATE.ended;
         }
         //update the current time
@@ -386,7 +386,7 @@ class SourceNode extends GraphNode {
 
         if (currentTime >= this._stopTime) {
             clearTexture(this._gl, this._texture);
-            this._triggerCallbacks("ended");
+            if (this._state !== STATE.ended) this._triggerCallbacks("ended");
             this._state = STATE.ended;
         }
 

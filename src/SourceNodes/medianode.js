@@ -219,7 +219,7 @@ class MediaNode extends SourceNode {
             if (this._element === undefined) this._load();
             let relativeTime = this._currentTime - this._startTime + this._sourceOffset;
             this._element.currentTime = relativeTime;
-            this._ready = false;
+            this._ready = this._element.readyState > 3 && !this._element.seeking;
         }
         if (
             (this._state === SOURCENODESTATE.sequenced || this._state === SOURCENODESTATE.ended) &&
@@ -234,7 +234,7 @@ class MediaNode extends SourceNode {
         super._update(currentTime, triggerTextureUpdate);
         //check if the media has ended
         if (this._element !== undefined) {
-            if (this._element.ended) {
+            if (this._element.ended && this._state !== SOURCENODESTATE.ended) {
                 this._state = SOURCENODESTATE.ended;
                 this._triggerCallbacks("ended");
             }

@@ -116,6 +116,52 @@ describe("medianode", () => {
             expect(node.state).toBe(SOURCENODESTATE.playing);
             expect(element.play).toHaveBeenCalledTimes(2);
         });
+
+        it("should fire ended once when playback crosses stop time", () => {
+            const { element, node } = nodeFactory(ctx);
+            const endedCallback = jest.fn();
+
+            node.registerCallback("ended", endedCallback);
+
+            ctx.play();
+            ctx.update(1);
+            endedCallback.mockClear();
+
+            ctx.currentTime = 9.9;
+            element.ended = true;
+            ctx.update(0.2);
+
+            expect(ctx.state).toBe(VideoContext.STATE.ENDED);
+            expect(node.state).toBe(SOURCENODESTATE.ended);
+            expect(endedCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it("should allow seeking back from ended state and replaying", () => {
+            const { element, node } = nodeFactory(ctx);
+
+            ctx.play();
+            ctx.update(1);
+            ctx.currentTime = 9.9;
+            element.ended = true;
+            ctx.update(0.2);
+
+            expect(ctx.state).toBe(VideoContext.STATE.ENDED);
+            expect(node.state).toBe(SOURCENODESTATE.ended);
+
+            element.ended = false;
+            ctx.currentTime = 2;
+            ctx.update(0);
+
+            expect(ctx.state).toBe(VideoContext.STATE.PAUSED);
+            expect(node.state).toBe(SOURCENODESTATE.paused);
+
+            ctx.play();
+            ctx.update(0.1);
+
+            expect(ctx.state).toBe(VideoContext.STATE.PLAYING);
+            expect(node.state).toBe(SOURCENODESTATE.playing);
+            expect(element.currentTime).toBe(2);
+        });
     });
 
     describe("volume", () => {
