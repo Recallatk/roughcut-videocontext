@@ -108,10 +108,7 @@ export default class VideoContext {
         this._sourcesPlaying = undefined;
         this._destinationNode = new DestinationNode(this._gl, this._renderGraph);
 
-        this._callbacks = new Map();
-        Object.keys(VideoContext.EVENTS).forEach(name =>
-            this._callbacks.set(VideoContext.EVENTS[name], [])
-        );
+        this._resetCallbacks();
 
         this._timelineCallbacks = [];
 
@@ -215,6 +212,13 @@ export default class VideoContext {
             }
         }
         return false;
+    }
+
+    _resetCallbacks() {
+        this._callbacks = new Map();
+        Object.keys(VideoContext.EVENTS).forEach(name =>
+            this._callbacks.set(VideoContext.EVENTS[name], [])
+        );
     }
 
     _callCallbacks(type) {
@@ -967,9 +971,8 @@ export default class VideoContext {
      * Destroy all nodes in the graph and reset the timeline. After calling this any created nodes will be unusable.
      */
     reset() {
-        for (let callback of this._callbacks) {
-            this.unregisterCallback(callback);
-        }
+        this._resetCallbacks();
+        this._timelineCallbacks = [];
         for (let node of this._sourceNodes) {
             node.destroy();
         }
@@ -984,10 +987,6 @@ export default class VideoContext {
         this._state = VideoContext.STATE.PAUSED;
         this._playbackRate = 1.0;
         this._sourcesPlaying = undefined;
-        Object.keys(VideoContext.EVENTS).forEach(name =>
-            this._callbacks.set(VideoContext.EVENTS[name], [])
-        );
-        this._timelineCallbacks = [];
     }
 
     _deprecate(msg) {

@@ -40,9 +40,9 @@ describe("VideoContext", function() {
 
     describe("#duration", function() {
         it("should return the time in seconds between time=0 and the stop time of the last SourceNode", function() {
-            var videoElement = document.createElement("video");
-            var videoNode1 = videocontext.video(videoElement);
-            var videoNode2 = videocontext.video(videoElement);
+            var videoElement = document.createElement("img");
+            var videoNode1 = videocontext.image(videoElement);
+            var videoNode2 = videocontext.image(videoElement);
 
             videoNode1.start(10);
             videoNode1.stop(20.245);
@@ -60,13 +60,78 @@ describe("VideoContext", function() {
         });
 
         it("should return 0 if all source nodes have had clearTimelineState called on them", function() {
-            var videoElement = document.createElement("video");
-            var videoNode = videocontext.video(videoElement);
+            var videoElement = document.createElement("img");
+            var videoNode = videocontext.image(videoElement);
 
             videoNode.start(0);
             videoNode.stop(10);
             videoNode.clearTimelineState();
             expect(videocontext.duration).toEqual(0);
+        });
+    });
+
+    describe("#reset()", function() {
+        it("should not invoke previously registered update callbacks during reset", function() {
+            var updateCallback = jest.fn();
+
+            videocontext.registerCallback(VideoContext.EVENTS.UPDATE, updateCallback);
+            videocontext._callCallbacks(VideoContext.EVENTS.UPDATE);
+
+            expect(updateCallback).toHaveBeenCalledTimes(1);
+
+            videocontext.reset();
+
+            expect(updateCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it("should clear source and processing nodes and reset duration to 0", function() {
+            var videoElement = document.createElement("img");
+            var videoNode = videocontext.image(videoElement);
+            var effectNode = videocontext.effect(VideoContext.DEFINITIONS.MONOCHROME);
+
+            videoNode.start(0);
+            videoNode.stop(10);
+            videoNode.connect(effectNode);
+            effectNode.connect(videocontext.destination);
+
+            expect(videocontext.duration).toEqual(10);
+            expect(videocontext._sourceNodes.length).toBeGreaterThan(0);
+            expect(videocontext._processingNodes.length).toBeGreaterThan(0);
+
+            videocontext.reset();
+
+            expect(videocontext.duration).toEqual(0);
+            expect(videocontext._sourceNodes).toEqual([]);
+            expect(videocontext._processingNodes).toEqual([]);
+        });
+
+        it("should be safe to call reset twice", function() {
+            var videoElement = document.createElement("img");
+            var videoNode = videocontext.image(videoElement);
+
+            videoNode.start(0);
+            videoNode.stop(5);
+
+            expect(() => videocontext.reset()).not.toThrow();
+            expect(() => videocontext.reset()).not.toThrow();
+
+            expect(videocontext.duration).toEqual(0);
+            expect(videocontext._sourceNodes).toEqual([]);
+            expect(videocontext._processingNodes).toEqual([]);
+        });
+
+        it("should allow callbacks to be re-registered after reset without duplication", function() {
+            var updateCallback = jest.fn();
+
+            videocontext.registerCallback(VideoContext.EVENTS.UPDATE, updateCallback);
+            videocontext.reset();
+            updateCallback.mockClear();
+
+            videocontext.registerCallback(VideoContext.EVENTS.UPDATE, updateCallback);
+            videocontext._callCallbacks(VideoContext.EVENTS.UPDATE);
+
+            expect(updateCallback).toHaveBeenCalledTimes(1);
+            expect(videocontext._callbacks.get(VideoContext.EVENTS.UPDATE).length).toEqual(1);
         });
     });
 });
