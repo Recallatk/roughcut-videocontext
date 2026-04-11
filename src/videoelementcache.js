@@ -1,6 +1,12 @@
 import VideoElementCacheItem from "./videoelementcacheitem";
 import { mediaElementHasSource } from "./utils";
 
+const BENIGN_PLAY_ERRORS = ["AbortError", "NotAllowedError", "NotSupportedError"];
+
+function isBenignPlayError(error) {
+    return error !== undefined && error !== null && BENIGN_PLAY_ERRORS.indexOf(error.name) !== -1;
+}
+
 class VideoElementCache {
     constructor(cache_size = 3) {
         this._cacheItems = [];
@@ -15,19 +21,29 @@ class VideoElementCache {
         if (!this._cacheItemsInitialised) {
             for (let cacheItem of this._cacheItems) {
                 try {
-                    cacheItem.element.play().then(
-                        () => {
-                            // Pause any elements not in the "playing" state
-                            if (!cacheItem.isPlaying()) {
-                                cacheItem.element.pause();
+                    const playPromise = cacheItem.element.play();
+
+                    if (
+                        playPromise !== undefined &&
+                        playPromise !== null &&
+                        typeof playPromise.then === "function"
+                    ) {
+                        playPromise.then(
+                            () => {
+                                // Pause any elements not in the "playing" state
+                                if (!cacheItem.isPlaying()) {
+                                    cacheItem.element.pause();
+                                }
+                            },
+                            e => {
+                                if (!isBenignPlayError(e)) throw e;
                             }
-                        },
-                        e => {
-                            if (e.name !== "NotSupportedError") throw e;
-                        }
-                    );
+                        );
+                    }
                 } catch (e) {
-                    //console.log(e.name);
+                    // Keep cache warmup best-effort for browsers which throw synchronously.
+                    if (isBenignPlayError(e)) continue;
+                    continue;
                 }
             }
         }

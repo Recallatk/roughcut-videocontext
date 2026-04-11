@@ -1,4 +1,5 @@
 import VideoContext from "../../src/videocontext";
+import { SOURCENODESTATE } from "../../src/SourceNodes/sourcenode";
 
 let ctx;
 require("webgl-mock");
@@ -17,8 +18,12 @@ const nodeFactory = (
         _currentTime = v;
     });
     const element = {
-        play: jest.fn(),
+        play: jest.fn(() => Promise.resolve()),
         pause: jest.fn(),
+        readyState: HTMLMediaElement.HAVE_ENOUGH_DATA,
+        seeking: false,
+        duration: 10,
+        ended: false,
         get currentTime() {
             return _currentTime;
         },
@@ -51,6 +56,68 @@ beforeEach(() => {
  * We use the public ctx.update method to advance the videocontext timeline and trigger these updates
  */
 describe("medianode", () => {
+    describe("transport", () => {
+        it("should honour the latest play intent during rapid play and pause changes", () => {
+            const { element, node } = nodeFactory(ctx);
+
+            ctx.update(0);
+            element.play.mockClear();
+            element.pause.mockClear();
+
+            ctx.play();
+            ctx.pause();
+            ctx.play();
+            ctx.update(1);
+
+            expect(ctx.state).toBe(VideoContext.STATE.PLAYING);
+            expect(node.state).toBe(SOURCENODESTATE.playing);
+            expect(element.play).toHaveBeenCalledTimes(1);
+            expect(element.pause).not.toHaveBeenCalled();
+        });
+
+        it("should honour the latest pause intent during rapid play and pause changes", () => {
+            const { element, node } = nodeFactory(ctx);
+
+            ctx.play();
+            ctx.update(1);
+            element.play.mockClear();
+            element.pause.mockClear();
+
+            ctx.pause();
+            ctx.play();
+            ctx.pause();
+            ctx.update(2);
+
+            expect(ctx.state).toBe(VideoContext.STATE.PAUSED);
+            expect(node.state).toBe(SOURCENODESTATE.paused);
+            expect(element.play).not.toHaveBeenCalled();
+            expect(element.pause).toHaveBeenCalledTimes(1);
+        });
+
+        it("should restart element playback cleanly after repeated pause and resume", () => {
+            const { element, node } = nodeFactory(ctx);
+
+            ctx.play();
+            ctx.update(1);
+
+            expect(node.state).toBe(SOURCENODESTATE.playing);
+            expect(element.play).toHaveBeenCalledTimes(1);
+
+            ctx.pause();
+            ctx.update(2);
+
+            expect(node.state).toBe(SOURCENODESTATE.paused);
+            expect(element.pause).toHaveBeenCalledTimes(1);
+
+            ctx.play();
+            ctx.update(3);
+
+            expect(ctx.state).toBe(VideoContext.STATE.PLAYING);
+            expect(node.state).toBe(SOURCENODESTATE.playing);
+            expect(element.play).toHaveBeenCalledTimes(2);
+        });
+    });
+
     describe("volume", () => {
         it("volume setter sets volume on element", () => {
             const { element, node } = nodeFactory(ctx);
