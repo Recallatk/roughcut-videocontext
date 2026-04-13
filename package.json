@@ -1,10 +1,10 @@
 {
-  "name": "videocontext",
-  "version": "0.54.0",
+  "name": "@recallatk/videocontext",
+  "version": "0.54.0-roughcut.2",
   "description": "A WebGL & HTML5 graph based video composition library",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bbc/VideoContext.git"
+    "url": "git+https://github.com/Recallatk/roughcut-videocontext.git"
   },
   "license": "Apache-2.0",
   "main": "dist/videocontext.js",
@@ -91,5 +91,8 @@
     "testMatch": [
       "**/test/(integration|unit)/?(*.)+(spec|test).js?(x)"
     ]
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }
