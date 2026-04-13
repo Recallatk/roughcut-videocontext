@@ -788,10 +788,17 @@ export default class VideoContext {
         return this.transition(definition);
     }
 
+    _isSourceNodeActive(sourceNode, currentTime = this._currentTime) {
+        const startTime = sourceNode.startTime;
+        const stopTime = sourceNode.stopTime;
+
+        return !isNaN(startTime) && currentTime >= startTime && currentTime < stopTime;
+    }
+
     _isStalled() {
         for (let i = 0; i < this._sourceNodes.length; i++) {
             let sourceNode = this._sourceNodes[i];
-            if (!sourceNode._isReady()) {
+            if (this._isSourceNodeActive(sourceNode) && !sourceNode._isReady()) {
                 return true;
             }
         }

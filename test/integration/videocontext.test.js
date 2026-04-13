@@ -3,6 +3,21 @@ import VideoContext from "../../src/videocontext";
 let videocontext;
 require("webgl-mock");
 
+function createStubSourceNode(config) {
+    return {
+        destroyed: false,
+        startTime: config.startTime,
+        stopTime: config.stopTime,
+        _state: config.state === undefined ? 1 : config.state,
+        _isReady: jest.fn(function() {
+            return config.isReady;
+        }),
+        _pause: jest.fn(),
+        _play: jest.fn(),
+        _update: jest.fn()
+    };
+}
+
 beforeEach(function() {
     const canvas = new HTMLCanvasElement(500, 500);
     videocontext = new VideoContext(canvas);
@@ -67,6 +82,60 @@ describe("VideoContext", function() {
             videoNode.stop(10);
             videoNode.clearTimelineState();
             expect(videocontext.duration).toEqual(0);
+        });
+    });
+
+    describe("#_isStalled()", function() {
+        it("does not stall when only a future source is not ready", function() {
+            var stalledCallback = jest.fn();
+            var activeSourceNode = createStubSourceNode({
+                startTime: 4,
+                stopTime: 23,
+                isReady: true,
+                state: 3
+            });
+            var futureSourceNode = createStubSourceNode({
+                startTime: 23,
+                stopTime: 25,
+                isReady: false
+            });
+
+            videocontext._currentTime = 12;
+            videocontext._state = VideoContext.STATE.PLAYING;
+            videocontext._sourceNodes = [activeSourceNode, futureSourceNode];
+            videocontext.registerCallback(VideoContext.EVENTS.STALLED, stalledCallback);
+
+            videocontext._update(0.25);
+
+            expect(videocontext._isStalled()).toBe(false);
+            expect(stalledCallback).not.toHaveBeenCalled();
+            expect(videocontext._state).not.toBe(VideoContext.STATE.STALLED);
+        });
+
+        it("stalls when an active source is not ready", function() {
+            var stalledCallback = jest.fn();
+            var activeSourceNode = createStubSourceNode({
+                startTime: 4,
+                stopTime: 23,
+                isReady: false,
+                state: 2
+            });
+            var futureSourceNode = createStubSourceNode({
+                startTime: 23,
+                stopTime: 25,
+                isReady: false
+            });
+
+            videocontext._currentTime = 12;
+            videocontext._state = VideoContext.STATE.PLAYING;
+            videocontext._sourceNodes = [activeSourceNode, futureSourceNode];
+            videocontext.registerCallback(VideoContext.EVENTS.STALLED, stalledCallback);
+
+            videocontext._update(0.25);
+
+            expect(videocontext._isStalled()).toBe(true);
+            expect(stalledCallback).toHaveBeenCalledTimes(1);
+            expect(videocontext._state).toBe(VideoContext.STATE.STALLED);
         });
     });
 });
