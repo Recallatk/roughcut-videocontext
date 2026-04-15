@@ -44,7 +44,9 @@ class MediaNode extends SourceNode {
                 this._element.pause();
             } else {
                 if (this._state === SOURCENODESTATE.playing) {
-                    this._element.play();
+                    this._element.play().catch(e => {
+                        if (e.name !== "AbortError") throw e;
+                    });
                 }
             }
         }
@@ -253,7 +255,9 @@ class MediaNode extends SourceNode {
                 this._playbackRateUpdated = false;
             }
             if (!this._isElementPlaying) {
-                this._element.play();
+                this._element.play().catch(e => {
+                    if (e.name !== "AbortError") throw e;
+                });
                 if (this._stretchPaused) {
                     this._element.pause();
                 }
