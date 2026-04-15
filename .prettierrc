@@ -5,6 +5,5 @@
     "singleQuote": false,
     "trailingComma": "none",
     "bracketSpacing": true,
-    "parser": "babylon",
     "semi": true
 }

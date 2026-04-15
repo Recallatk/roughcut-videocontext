@@ -69,10 +69,10 @@ class ProcessingNode extends GraphNode {
         //create properties on this object for the passed properties
         for (let propertyName in this._properties) {
             Object.defineProperty(this, propertyName, {
-                get: function() {
+                get: function () {
                     return this._properties[propertyName].value;
                 },
-                set: function(passedValue) {
+                set: function (passedValue) {
                     this._properties[propertyName].value = passedValue;
                 }
             });

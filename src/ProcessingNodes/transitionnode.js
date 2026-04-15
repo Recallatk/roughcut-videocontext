@@ -39,7 +39,7 @@ class TransitionNode extends EffectNode {
             this._transitions[transition.property] = [];
         this._transitions[transition.property].push(transition);
 
-        this._transitions[transition.property].sort(function(a, b) {
+        this._transitions[transition.property].sort(function (a, b) {
             return a.start - b.start;
         });
     }

@@ -22,7 +22,7 @@ class VideoElementCache {
                                 cacheItem.element.pause();
                             }
                         },
-                        e => {
+                        (e) => {
                             if (e.name !== "NotSupportedError" && e.name !== "AbortError") throw e;
                         }
                     );

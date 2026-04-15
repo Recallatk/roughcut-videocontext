@@ -37,7 +37,7 @@ class ImageNode extends SourceNode {
                 if (window.createImageBitmap) {
                     window
                         .createImageBitmap(this._image, { imageOrientation: "flipY" })
-                        .then(imageBitmap => {
+                        .then((imageBitmap) => {
                             this._element = imageBitmap;
                             this._triggerCallbacks("loaded");
                         });

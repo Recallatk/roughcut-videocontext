@@ -49,7 +49,7 @@ export function createShaderProgram(gl, vertexShader, fragmentShader) {
         throw {
             error: 4,
             msg: "Can't link shader program for track",
-            toString: function() {
+            toString: function () {
                 return this.msg;
             }
         };
@@ -224,7 +224,7 @@ export function generateRandomId() {
     }
 
     function capitalize(word) {
-        word = word.replace(/\b\w/g, l => l.toUpperCase());
+        word = word.replace(/\b\w/g, (l) => l.toUpperCase());
         return word;
     }
 
@@ -398,23 +398,23 @@ export function createControlFormForNode(node, nodeName) {
             number.setAttribute("value", propertyValue, toString());
 
             let mouseDown = false;
-            range.onmousedown = function() {
+            range.onmousedown = function () {
                 mouseDown = true;
             };
-            range.onmouseup = function() {
+            range.onmouseup = function () {
                 mouseDown = false;
             };
-            range.onmousemove = function() {
+            range.onmousemove = function () {
                 if (mouseDown) {
                     node[propertyName] = parseFloat(range.value);
                     number.value = range.value;
                 }
             };
-            range.onchange = function() {
+            range.onchange = function () {
                 node[propertyName] = parseFloat(range.value);
                 number.value = range.value;
             };
-            number.onchange = function() {
+            number.onchange = function () {
                 node[propertyName] = parseFloat(number.value);
                 range.value = number.value;
             };
@@ -438,24 +438,24 @@ export function createControlFormForNode(node, nodeName) {
 
                 let index = i;
                 let mouseDown = false;
-                range.onmousedown = function() {
+                range.onmousedown = function () {
                     mouseDown = true;
                 };
-                range.onmouseup = function() {
+                range.onmouseup = function () {
                     mouseDown = false;
                 };
-                range.onmousemove = function() {
+                range.onmousemove = function () {
                     if (mouseDown) {
                         node[propertyName][index] = parseFloat(range.value);
                         number.value = range.value;
                     }
                 };
-                range.onchange = function() {
+                range.onchange = function () {
                     node[propertyName][index] = parseFloat(range.value);
                     number.value = range.value;
                 };
 
-                number.onchange = function() {
+                number.onchange = function () {
                     node[propertyName][index] = parseFloat(number.value);
                     range.value = number.value;
                 };
@@ -500,7 +500,7 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
 
     let nodeDepths = calculateNodeDepthFromDestination(videoContext);
     let depths = nodeDepths.values();
-    depths = Array.from(depths).sort(function(a, b) {
+    depths = Array.from(depths).sort(function (a, b) {
         return b - a;
     });
     let maxDepth = depths[0];
@@ -788,7 +788,7 @@ export class UpdateablesManager {
             type: "application/javascript"
         });
         this._webWorker = new Worker(URL.createObjectURL(blob));
-        this._webWorker.onmessage = msg => {
+        this._webWorker.onmessage = (msg) => {
             let time = msg.data;
             this._updateWorkerTime(time);
         };

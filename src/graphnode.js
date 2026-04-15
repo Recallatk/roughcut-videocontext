@@ -56,7 +56,7 @@ class GraphNode {
      */
     get inputs() {
         let result = this._renderGraph.getInputsForNode(this);
-        result = result.filter(function(n) {
+        result = result.filter(function (n) {
             return n !== undefined;
         });
         return result;
@@ -100,7 +100,7 @@ class GraphNode {
     disconnect(targetNode) {
         if (targetNode === undefined) {
             let toRemove = this._renderGraph.getOutputsForNode(this);
-            toRemove.forEach(target => this._renderGraph.unregisterConnection(this, target));
+            toRemove.forEach((target) => this._renderGraph.unregisterConnection(this, target));
             if (toRemove.length > 0) return true;
             return false;
         }

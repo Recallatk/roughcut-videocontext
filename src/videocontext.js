@@ -109,7 +109,7 @@ export default class VideoContext {
         this._destinationNode = new DestinationNode(this._gl, this._renderGraph);
 
         this._callbacks = new Map();
-        Object.keys(VideoContext.EVENTS).forEach(name =>
+        Object.keys(VideoContext.EVENTS).forEach((name) =>
             this._callbacks.set(VideoContext.EVENTS[name], [])
         );
 
@@ -831,11 +831,11 @@ export default class VideoContext {
 
     _update(dt) {
         //Remove any destroyed nodes
-        this._sourceNodes = this._sourceNodes.filter(sourceNode => {
+        this._sourceNodes = this._sourceNodes.filter((sourceNode) => {
             if (!sourceNode.destroyed) return sourceNode;
         });
 
-        this._processingNodes = this._processingNodes.filter(processingNode => {
+        this._processingNodes = this._processingNodes.filter((processingNode) => {
             if (!processingNode.destroyed) return processingNode;
         });
 
@@ -872,13 +872,13 @@ export default class VideoContext {
 
                 //Sort the groups of callbacks by the times of the groups
                 let timeIntervals = Array.from(activeCallbacks.keys());
-                timeIntervals.sort(function(a, b) {
+                timeIntervals.sort(function (a, b) {
                     return a - b;
                 });
 
                 for (let t of timeIntervals) {
                     let callbacks = activeCallbacks.get(t);
-                    callbacks.sort(function(a, b) {
+                    callbacks.sort(function (a, b) {
                         return a.ordering - b.ordering;
                     });
                     for (let callback of callbacks) {
@@ -991,7 +991,7 @@ export default class VideoContext {
         this._state = VideoContext.STATE.PAUSED;
         this._playbackRate = 1.0;
         this._sourcesPlaying = undefined;
-        Object.keys(VideoContext.EVENTS).forEach(name =>
+        Object.keys(VideoContext.EVENTS).forEach((name) =>
             this._callbacks.set(VideoContext.EVENTS[name], [])
         );
         this._timelineCallbacks = [];

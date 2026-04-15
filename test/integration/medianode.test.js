@@ -13,7 +13,7 @@ const nodeFactory = (
     { sourceOffset = undefined, preloadTime = undefined } = {}
 ) => {
     let _currentTime = undefined;
-    const _currentTimeSetter = jest.fn(v => {
+    const _currentTimeSetter = jest.fn((v) => {
         _currentTime = v;
     });
     const element = {

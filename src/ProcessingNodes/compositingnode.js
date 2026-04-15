@@ -40,7 +40,7 @@ class CompositingNode extends ProcessingNode {
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.inputs.forEach(node => {
+        this.inputs.forEach((node) => {
             if (node === undefined) return;
             super._render();
 

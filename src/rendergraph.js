@@ -17,7 +17,7 @@ class RenderGraph {
      */
     getOutputsForNode(node) {
         let results = [];
-        this.connections.forEach(function(connection) {
+        this.connections.forEach(function (connection) {
             if (connection.source === node) {
                 results.push(connection.destination);
             }
@@ -33,7 +33,7 @@ class RenderGraph {
      */
     getNamedInputsForNode(node) {
         let results = [];
-        this.connections.forEach(function(connection) {
+        this.connections.forEach(function (connection) {
             if (connection.destination === node && connection.type === "name") {
                 results.push(connection);
             }
@@ -49,12 +49,12 @@ class RenderGraph {
      */
     getZIndexInputsForNode(node) {
         let results = [];
-        this.connections.forEach(function(connection) {
+        this.connections.forEach(function (connection) {
             if (connection.destination === node && connection.type === "zIndex") {
                 results.push(connection);
             }
         });
-        results.sort(function(a, b) {
+        results.sort(function (a, b) {
             return a.zIndex - b.zIndex;
         });
         return results;
@@ -189,7 +189,7 @@ class RenderGraph {
     unregisterConnection(sourceNode, destinationNode) {
         let toRemove = [];
 
-        this.connections.forEach(function(connection) {
+        this.connections.forEach(function (connection) {
             if (connection.source === sourceNode && connection.destination === destinationNode) {
                 toRemove.push(connection);
             }
@@ -197,7 +197,7 @@ class RenderGraph {
 
         if (toRemove.length === 0) return false;
 
-        toRemove.forEach(removeNode => {
+        toRemove.forEach((removeNode) => {
             let index = this.connections.indexOf(removeNode);
             this.connections.splice(index, 1);
         });
