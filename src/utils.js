@@ -302,7 +302,7 @@ function snapshotNodes(vc) {
     for (let index in vc._sourceNodes) {
         let source = vc._sourceNodes[index];
         let id = "source" + index;
-        let node_url = "";
+        let node_url;
 
         if (!source._isResponsibleForElementLifeCycle) {
             if (!warningExportSourceLogged) {

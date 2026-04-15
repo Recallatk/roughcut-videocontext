@@ -26,8 +26,8 @@ class VideoElementCache {
                             if (e.name !== "NotSupportedError" && e.name !== "AbortError") throw e;
                         }
                     );
-                } catch (e) {
-                    //console.log(e.name);
+                } catch {
+                    // suppressed: element may not be in a playable state
                 }
             }
         }

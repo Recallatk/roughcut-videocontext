@@ -23,7 +23,7 @@ const nodeFactory = (
             return _currentTime;
         },
         set currentTime(v) {
-            return _currentTimeSetter(v);
+            _currentTimeSetter(v);
         },
         _currentTimeSetter
     };

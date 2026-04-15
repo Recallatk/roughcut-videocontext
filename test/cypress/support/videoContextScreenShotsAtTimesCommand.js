@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-assigning-return-values */
 /**
  * takeScreenShotAtTime
  *

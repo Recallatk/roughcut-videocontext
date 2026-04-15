@@ -3,7 +3,7 @@ import SourceNode from "../../src/SourceNodes/sourcenode";
 import sinon from "sinon";
 import "webgl-mock";
 
-global.window = {}; // eslint-disable-line
+global.window = {};
 
 let mockGLContext;
 
