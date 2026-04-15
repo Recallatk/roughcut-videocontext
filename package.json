@@ -23,8 +23,8 @@
     }
   ],
   "scripts": {
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --watch",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js",
+    "dev": "vite build --watch",
+    "build": "vite build",
     "test": "bash ./test.sh",
     "test-unit": "jest test/unit/*.js",
     "test-integration": "jest test/integration/*.js",
@@ -58,12 +58,10 @@
     "@babel/preset-env": "^7.29.2",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
-    "babel-loader": "^8.4.1",
     "concurrently": "^4.1.1",
     "cypress": "3.5.0",
     "cypress-image-snapshot": "^3.1.1",
     "eslint": "^4.18.2",
-    "eslint-loader": "^2.0.0",
     "eslint-plugin-cypress": "^2.2.0",
     "generate-changelog": "^1.7.1",
     "husky": "^0.14.3",
@@ -73,12 +71,10 @@
     "jsdoc": "^3.4.3",
     "local-web-server": "^2.6.1",
     "prettier": "^1.13.2",
-    "raw-loader": "^0.5.1",
     "sinon": "^7.2.7",
     "start-server-and-test": "^1.7.11",
-    "webgl-mock": "^0.1.7",
-    "webpack": "^4.10.2",
-    "webpack-cli": "^3.0.1"
+    "vite": "^8.0.8",
+    "webgl-mock": "^0.1.7"
   },
   "files": [
     "dist"
