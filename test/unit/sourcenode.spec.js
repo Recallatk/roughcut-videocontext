@@ -1,6 +1,6 @@
 import * as utils from "../../src/utils";
 import SourceNode from "../../src/SourceNodes/sourcenode";
-import sinon from "sinon";
+import { vi } from "vitest";
 import "webgl-mock";
 
 global.window = {};
@@ -18,7 +18,7 @@ beforeEach(() => {
 
 describe("_update", () => {
     test("updatesTexture if currentTime is changed and ctx is PAUSED and node is ready", () => {
-        const updateTextureSpy = sinon.spy(utils, "updateTexture");
+        const updateTextureSpy = vi.spyOn(utils, "updateTexture");
         const currentTime = 0;
         const node = new SourceNode(ELEMENT, mockGLContext, mockRenderGraph, currentTime);
 
@@ -32,12 +32,12 @@ describe("_update", () => {
         node._ready = true;
 
         // Expect updateTexture to not be called at this point
-        expect(updateTextureSpy.calledOnce).toBeFalsy();
+        expect(updateTextureSpy).not.toHaveBeenCalled();
 
         // force an update
         node._update(currentTime + 1);
 
         // Expect updateTexture to be called after update
-        expect(updateTextureSpy.calledOnce).toBeTruthy();
+        expect(updateTextureSpy).toHaveBeenCalledOnce();
     });
 });

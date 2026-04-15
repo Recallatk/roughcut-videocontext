@@ -25,11 +25,11 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "test": "bash ./test.sh",
-    "test-unit": "jest test/unit/*.js",
-    "test-integration": "jest test/integration/*.js",
-    "test-watch": "jest --watch",
-    "test-coverage": "jest test/unit/*.js --coverage --collectCoverageFrom 'src/**/*.js'",
+    "test": "vitest run",
+    "test-unit": "vitest run test/unit",
+    "test-integration": "vitest run test/integration",
+    "test-watch": "vitest",
+    "test-coverage": "vitest run --coverage",
     "test-ci:cypress": "start-server-and-test _cy-server http://localhost:3001 _cy:run",
     "cypress": "./cypress-run.sh docker",
     "cypress:update-snapshots": "./cypress-run.sh docker-update-snapshots",
@@ -57,8 +57,7 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
     "@eslint/js": "^10.0.1",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "concurrently": "^4.1.1",
     "cypress": "3.5.0",
     "cypress-image-snapshot": "^3.1.1",
@@ -67,29 +66,19 @@
     "generate-changelog": "^1.7.1",
     "globals": "^17.5.0",
     "husky": "^0.14.3",
-    "jest": "^24.3.1",
-    "jest-cli": "^23.1.0",
-    "jest-image-snapshot": "^2.4.2",
     "jsdoc": "^3.4.3",
+    "jsdom": "^29.0.2",
     "local-web-server": "^2.6.1",
     "prettier": "^3.8.3",
     "sinon": "^7.2.7",
     "start-server-and-test": "^1.7.11",
     "vite": "^8.0.8",
+    "vitest": "^4.1.4",
     "webgl-mock": "^0.1.7"
   },
   "files": [
     "dist"
   ],
-  "jest": {
-    "moduleNameMapper": {
-      "\\.(frag|vert)$": "<rootDir>/test/__mocks__/glsl.js",
-      "Definitions/definitions\\.js$": "<rootDir>/test/__mocks__/definitions.js"
-    },
-    "testMatch": [
-      "**/test/(integration|unit)/?(*.)+(spec|test).js?(x)"
-    ]
-  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   }
