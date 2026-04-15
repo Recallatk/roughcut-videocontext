@@ -23,7 +23,7 @@ class VideoElementCache {
                             }
                         },
                         e => {
-                            if (e.name !== "NotSupportedError") throw e;
+                            if (e.name !== "NotSupportedError" && e.name !== "AbortError") throw e;
                         }
                     );
                 } catch (e) {
