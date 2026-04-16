@@ -149,59 +149,29 @@ describe("VideoElementCache", () => {
     });
 
     describe("init()", () => {
-        test("calls play() on each cached element", async () => {
+        test("sets _cacheItemsInitialised to true", () => {
             const cache = new VideoElementCache(2);
-            // Stub play() to avoid JSDOM 'Not implemented' errors
-            cache._cacheItems.forEach((item) => stubPlay(item.element));
-
-            cache.init();
-
-            // Allow micro-task queue to flush so .then() handlers run
-            await Promise.resolve();
-
-            cache._cacheItems.forEach((item) => {
-                expect(item.element.play).toHaveBeenCalledOnce();
-            });
-        });
-
-        test("sets _cacheItemsInitialised to true after first call", () => {
-            const cache = new VideoElementCache(1);
-            cache._cacheItems.forEach((item) => stubPlay(item.element));
+            expect(cache._cacheItemsInitialised).toBe(false);
             cache.init();
             expect(cache._cacheItemsInitialised).toBe(true);
         });
 
-        test("is idempotent — second call does not call play() again", async () => {
-            const cache = new VideoElementCache(1);
+        test("is idempotent — second call is a no-op", () => {
+            const cache = new VideoElementCache(2);
+            cache.init();
+            cache.init(); // should not throw or mutate state further
+            expect(cache._cacheItemsInitialised).toBe(true);
+        });
+
+        test("does not call play() on cached elements", () => {
+            // play() on sourceless elements always rejects; calling it achieves
+            // nothing and creates async noise. init() must not call it.
+            const cache = new VideoElementCache(2);
             cache._cacheItems.forEach((item) => stubPlay(item.element));
-
             cache.init();
-            await Promise.resolve();
-            const playCallsAfterFirst = cache._cacheItems[0].element.play.mock.calls.length;
-
-            cache.init(); // second call — _cacheItemsInitialised is already true
-            await Promise.resolve();
-
-            expect(cache._cacheItems[0].element.play.mock.calls.length).toBe(playCallsAfterFirst);
-        });
-
-        test("suppresses AbortError from play()", async () => {
-            const cache = new VideoElementCache(1);
-            const err = Object.assign(new Error("aborted"), { name: "AbortError" });
-            cache._cacheItems[0].element.play = vi.fn().mockRejectedValue(err);
-
-            cache.init();
-            // Should not throw — AbortError is swallowed
-            await expect(Promise.resolve()).resolves.not.toThrow();
-        });
-
-        test("suppresses NotSupportedError from play()", async () => {
-            const cache = new VideoElementCache(1);
-            const err = Object.assign(new Error("not supported"), { name: "NotSupportedError" });
-            cache._cacheItems[0].element.play = vi.fn().mockRejectedValue(err);
-
-            cache.init();
-            await expect(Promise.resolve()).resolves.not.toThrow();
+            cache._cacheItems.forEach((item) => {
+                expect(item.element.play).not.toHaveBeenCalled();
+            });
         });
     });
 

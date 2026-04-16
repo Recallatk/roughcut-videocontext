@@ -104,6 +104,71 @@ describe("medianode", () => {
         });
     });
 
+    describe("play() error handling", () => {
+        /*
+         * When play() is called by _update() and the element rejects:
+         * - AbortError  → silent retry: _isElementPlaying resets to false, state unchanged
+         * - Other error → error state entered, error callback fired, _isElementPlaying resets
+         *
+         * In all cases _isElementPlaying must NOT be left stuck true; that would
+         * prevent any future play() attempt and produce a silently frozen node.
+         */
+
+        it("resets _isElementPlaying on AbortError so play() is retried next update", async () => {
+            const abortErr = Object.assign(new Error("aborted"), { name: "AbortError" });
+            const { node, element } = nodeFactory(ctx);
+            element.play = vi.fn().mockRejectedValue(abortErr);
+            element.readyState = 4; // signal 'ready' so _update calls play()
+
+            ctx.play(); // ctx must be PLAYING for _update to call play() on the element
+            ctx.update(1); // first update — play() called, rejects with AbortError
+            await Promise.resolve(); // flush microtask queue
+
+            expect(node._isElementPlaying).toBe(false); // reset — will retry
+            expect(node.state).not.toBe(5 /* error */);
+        });
+
+        it("enters error state and fires error callback on non-AbortError from play()", async () => {
+            const notAllowed = Object.assign(new Error("not allowed"), {
+                name: "NotAllowedError"
+            });
+            const { node, element } = nodeFactory(ctx);
+            element.play = vi.fn().mockRejectedValue(notAllowed);
+            element.readyState = 4;
+
+            const errorCb = vi.fn();
+            node.registerCallback("error", errorCb);
+
+            ctx.play();
+            ctx.update(1);
+            await Promise.resolve();
+
+            expect(node._isElementPlaying).toBe(false); // always reset
+            expect(node.state).toBe(5 /* SOURCENODESTATE.error */);
+            expect(errorCb).toHaveBeenCalledOnce();
+        });
+
+        it("does not retry play() after a non-AbortError (node stays in error state)", async () => {
+            const notAllowed = Object.assign(new Error("not allowed"), {
+                name: "NotAllowedError"
+            });
+            const { node, element } = nodeFactory(ctx);
+            element.play = vi.fn().mockRejectedValue(notAllowed);
+            element.readyState = 4;
+
+            ctx.play();
+            ctx.update(1);
+            await Promise.resolve();
+            const callsAfterFirst = element.play.mock.calls.length;
+
+            // Further updates should not call play() again — node is in error state
+            ctx.update(2);
+            await Promise.resolve();
+
+            expect(element.play.mock.calls.length).toBe(callsAfterFirst);
+        });
+    });
+
     describe("currentTime on provided element", () => {
         it("element.currentTime should equal ctx.currentTime be zero after load if no sourceOffset is given", () => {
             const { element } = nodeFactory(ctx, {}, { sourceOffset: undefined });

@@ -57,7 +57,11 @@ class MediaNode extends SourceNode {
             } else {
                 if (this._state === SOURCENODESTATE.playing) {
                     this._element.play().catch((e: any) => {
-                        if (e.name !== "AbortError") throw e;
+                        if (e.name === "AbortError") return;
+                        // Resume failed (e.g. NotAllowedError) — mark as not playing
+                        // so the next update can retry or the caller can intervene.
+                        console.debug("MediaNode stretchPaused resume failed:", e);
+                        this._isElementPlaying = false;
                     });
                 }
             }
@@ -267,11 +271,20 @@ class MediaNode extends SourceNode {
             if (!this._isElementPlaying) {
                 this._isElementPlaying = true; // set optimistically to prevent double-call
                 this._element.play().catch((e: any) => {
+                    // Always reset the flag — either we retry (AbortError) or we enter
+                    // the error state.  Never leave _isElementPlaying stuck true.
+                    this._isElementPlaying = false;
                     if (e.name === "AbortError") {
-                        this._isElementPlaying = false; // reset so play is retried next update
-                    } else {
-                        throw e;
+                        // Interrupted by a concurrent seek/pause — will retry next update
+                        return;
                     }
+                    // Any other error (NotAllowedError, NotSupportedError, network, …)
+                    // is permanent for this play attempt.  Enter the error state and
+                    // notify listeners so the application can react.
+                    console.debug("MediaNode play() failed:", e);
+                    this._state = SOURCENODESTATE.error;
+                    this._ready = true;
+                    this._triggerCallbacks("error");
                 });
                 if (this._stretchPaused) {
                     this._element.pause();

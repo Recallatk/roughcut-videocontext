@@ -13,26 +13,21 @@ class VideoElementCache {
         }
     }
 
+    /**
+     * Mark the cache as initialised.
+     *
+     * Calling play() on sourceless elements to "gesture-unlock" them is
+     * unreliable: the play() call always rejects immediately (NotSupportedError /
+     * AbortError) for elements with no src, so no unlock ever occurs.  The
+     * actual unlocking happens when MediaNode._update() calls play() on an
+     * element that has been given a real source — at which point the browser
+     * already has the user-gesture context from ctx.play().
+     *
+     * This method is kept for API compatibility and idempotency; the elements
+     * themselves are fully constructed in the VideoElementCacheItem constructor.
+     */
     init() {
-        if (!this._cacheItemsInitialised) {
-            for (const cacheItem of this._cacheItems) {
-                try {
-                    cacheItem.element.play().then(
-                        () => {
-                            // Pause any elements not in the "playing" state
-                            if (!cacheItem.isPlaying()) {
-                                cacheItem.element.pause();
-                            }
-                        },
-                        (e) => {
-                            if (e.name !== "NotSupportedError" && e.name !== "AbortError") throw e;
-                        }
-                    );
-                } catch {
-                    // suppressed: element may not be in a playable state
-                }
-            }
-        }
+        if (this._cacheItemsInitialised) return;
         this._cacheItemsInitialised = true;
     }
 
