@@ -2,6 +2,18 @@
 import SourceNode, { SOURCENODESTATE } from "./sourcenode";
 
 class MediaNode extends SourceNode {
+    _preloadTime: number;
+    _sourceOffset: number;
+    _globalPlaybackRate: number;
+    _mediaElementCache: any;
+    _playbackRate: number;
+    _playbackRateUpdated: boolean;
+    _attributes: Record<string, any>;
+    _loopElement: boolean;
+    _isElementPlaying: boolean;
+    _loadTriggered: boolean;
+    _elementType: string;
+
     /**
      * Initialise an instance of a MediaNode.
      * This should not be called directly, but extended by other Node Types which use a `HTMLMediaElement`.

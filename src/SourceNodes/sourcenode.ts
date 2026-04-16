@@ -14,6 +14,20 @@ let STATE = {
 const TYPE = "SourceNode";
 
 class SourceNode extends GraphNode {
+    _element: any;
+    _elementURL: string | MediaStream | undefined;
+    _isResponsibleForElementLifeCycle: boolean;
+    _state: number;
+    _currentTime: number;
+    _startTime: number;
+    _stopTime: number;
+    _ready: boolean;
+    _loadCalled: boolean;
+    _stretchPaused: boolean;
+    _texture: WebGLTexture | null;
+    _callbacks: Array<{ type: string; func: (...args: any[]) => void }>;
+    _renderPaused: boolean;
+
     /**
      * Initialise an instance of a SourceNode.
      * This is the base class for other Nodes which generate media to be passed into the processing pipeline.
@@ -187,7 +201,7 @@ class SourceNode extends GraphNode {
      * videoNode.unregisterCallback(); //remove all of the three callbacks.
      *
      */
-    unregisterCallback(func) {
+    unregisterCallback(func?: (...args: any[]) => void) {
         let toRemove = [];
         for (let callback of this._callbacks) {
             if (func === undefined) {
@@ -202,7 +216,7 @@ class SourceNode extends GraphNode {
         }
     }
 
-    _triggerCallbacks(type, data) {
+    _triggerCallbacks(type: string, data?: any) {
         for (let callback of this._callbacks) {
             if (callback.type === type) {
                 if (data !== undefined) {
@@ -337,6 +351,10 @@ class SourceNode extends GraphNode {
             this._triggerCallbacks("play");
             this._state = STATE.playing;
         }
+    }
+
+    get _buffering(): boolean {
+        return false;
     }
 
     _isReady() {

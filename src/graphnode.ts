@@ -3,10 +3,18 @@
 const TYPE = "GraphNode";
 
 class GraphNode {
+    _renderGraph: any;
+    _limitConnections: boolean;
+    _inputNames: string[];
+    _destroyed: boolean;
+    _gl: WebGLRenderingContext | null;
+    _rendered: boolean;
+    _displayName: string;
+
     /**
      * Base class from which all processing and source nodes are derrived.
      */
-    constructor(gl, renderGraph, inputNames, limitConnections = false) {
+    constructor(gl: WebGLRenderingContext | null, renderGraph: any, inputNames: string[], limitConnections = false) {
         this._renderGraph = renderGraph;
         this._limitConnections = limitConnections;
         this._inputNames = inputNames;
@@ -97,7 +105,7 @@ class GraphNode {
      * @param {GraphNode} [targetNode] - the node to disconnect from. If undefined, disconnect from all nodes.
      *
      */
-    disconnect(targetNode) {
+    disconnect(targetNode?: any) {
         if (targetNode === undefined) {
             let toRemove = this._renderGraph.getOutputsForNode(this);
             toRemove.forEach((target) => this._renderGraph.unregisterConnection(this, target));

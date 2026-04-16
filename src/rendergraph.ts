@@ -1,7 +1,16 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
 import { ConnectException } from "./exceptions.js";
 
+interface Connection {
+    source: any;
+    destination: any;
+    type: "name" | "zIndex";
+    name?: string;
+    zIndex?: number;
+}
+
 class RenderGraph {
+    connections: Connection[];
     /**
      * Manages the rendering graph.
      */
