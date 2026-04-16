@@ -4,8 +4,13 @@ import { screenshotAtTimes } from "./helpers.js";
 const TIMES = [1];
 
 test.beforeEach(async ({ page }) => {
+    page.on("console", (msg) => {
+        if (msg.type() === "error") console.error("[browser]", msg.text());
+    });
     await page.goto("/test/e2e/html/index.html");
-    await page.waitForFunction(() => typeof window.ctx !== "undefined");
+    await page.waitForFunction(() => window.ctx != null || window.ctxError != null, { timeout: 10000 });
+    const err = await page.evaluate(() => window.ctxError);
+    if (err) throw new Error(`VideoContext init failed: ${err}`);
 });
 
 test("Color Threshold", async ({ page }) => {

@@ -20,13 +20,24 @@ export default defineConfig({
     projects: [
         {
             name: "chromium",
-            use: { ...devices["Desktop Chrome"] }
+            use: {
+                ...devices["Desktop Chrome"],
+                // SwiftShader provides software WebGL in headless Chrome
+                launchOptions: {
+                    args: [
+                        "--use-gl=swiftshader",
+                        "--enable-webgl",
+                        "--ignore-gpu-blacklist",
+                        "--disable-gpu-sandbox"
+                    ]
+                }
+            }
         }
     ],
 
     // Static file server serving the project root
     webServer: {
-        command: "node_modules/.bin/serve . --listen 3001 --no-clipboard",
+        command: "node_modules/.bin/serve . -l 3001 --no-clipboard",
         port: 3001,
         reuseExistingServer: !process.env.CI,
         timeout: 15000

@@ -12,7 +12,12 @@
 
         <script type="text/javascript">
             window.onload = function () {
-                window.ctx = new VideoContext(canvas);
+                try {
+                    window.ctx = new VideoContext(canvas);
+                } catch (e) {
+                    window.ctxError = e.message || String(e);
+                    console.error("VideoContext init failed:", e);
+                }
             };
         </script>
     </body>

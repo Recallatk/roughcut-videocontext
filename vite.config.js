@@ -14,7 +14,6 @@ export default defineConfig({
             // no external deps — bundle everything
         },
     },
-    assetsInclude: ["**/*.frag", "**/*.vert"],
     plugins: [
         // Inline .frag and .vert shader files as raw strings
         {
