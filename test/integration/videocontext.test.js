@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import VideoContext from "../../src/videocontext";
 
 let videocontext;
@@ -9,12 +10,12 @@ function createStubSourceNode(config) {
         startTime: config.startTime,
         stopTime: config.stopTime,
         _state: config.state === undefined ? 1 : config.state,
-        _isReady: jest.fn(function () {
+        _isReady: vi.fn(function () {
             return config.isReady;
         }),
-        _pause: jest.fn(),
-        _play: jest.fn(),
-        _update: jest.fn()
+        _pause: vi.fn(),
+        _play: vi.fn(),
+        _update: vi.fn()
     };
 }
 
@@ -87,7 +88,7 @@ describe("VideoContext", function () {
 
     describe("#_isStalled()", function () {
         it("does not stall when only a future source is not ready", function () {
-            var stalledCallback = jest.fn();
+            var stalledCallback = vi.fn();
             var activeSourceNode = createStubSourceNode({
                 startTime: 4,
                 stopTime: 23,
@@ -113,7 +114,7 @@ describe("VideoContext", function () {
         });
 
         it("stalls when an active source is not ready", function () {
-            var stalledCallback = jest.fn();
+            var stalledCallback = vi.fn();
             var activeSourceNode = createStubSourceNode({
                 startTime: 4,
                 stopTime: 23,

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import VideoContext from "../../src/videocontext";
 
 let ctx;
@@ -13,12 +14,12 @@ const nodeFactory = (
     { sourceOffset = undefined, preloadTime = undefined } = {}
 ) => {
     let _currentTime = undefined;
-    const _currentTimeSetter = jest.fn((v) => {
+    const _currentTimeSetter = vi.fn((v) => {
         _currentTime = v;
     });
     const element = {
-        play: jest.fn(),
-        pause: jest.fn(),
+        play: vi.fn(),
+        pause: vi.fn(),
         get currentTime() {
             return _currentTime;
         },
