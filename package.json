@@ -1,85 +1,75 @@
 {
-  "name": "@recallatk/videocontext",
-  "version": "0.54.0-roughcut.3.1",
-  "description": "A WebGL & HTML5 graph based video composition library",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Recallatk/roughcut-videocontext.git"
-  },
-  "license": "Apache-2.0",
-  "main": "dist/videocontext.js",
-  "keywords": [
-    "video",
-    "context",
-    "composition",
-    "timeline",
-    "html5",
-    "webgl"
-  ],
-  "contributors": [
-    {
-      "name": "Matthew Shotton",
-      "email": "matthew.shotton@bbc.co.uk"
+    "name": "@recallatk/videocontext",
+    "version": "0.54.0-roughcut.3.1",
+    "description": "A WebGL & HTML5 graph based video composition library",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Recallatk/roughcut-videocontext.git"
+    },
+    "license": "Apache-2.0",
+    "main": "dist/videocontext.js",
+    "keywords": [
+        "video",
+        "context",
+        "composition",
+        "timeline",
+        "html5",
+        "webgl"
+    ],
+    "contributors": [
+        {
+            "name": "Matthew Shotton",
+            "email": "matthew.shotton@bbc.co.uk"
+        }
+    ],
+    "scripts": {
+        "dev": "vite build --watch",
+        "build": "vite build",
+        "test": "vitest run",
+        "test-unit": "vitest run test/unit",
+        "test-integration": "vitest run test/integration",
+        "test-watch": "vitest",
+        "test-coverage": "vitest run --coverage",
+        "test-e2e": "npm run build && playwright test",
+        "test-e2e:update": "npm run build && playwright test --update-snapshots",
+        "test-e2e:ui": "npm run build && playwright test --ui",
+        "docs": "bash ./build-docs.sh",
+        "docs-commit": "npm run docs && git add docs && git diff-index --quiet HEAD || git commit -m 'update docs in preparation for release'",
+        "format": "prettier --write '{src,test}/**/*.js'",
+        "lint": "eslint '{src,test}/**/*.js'",
+        "release:major": "npm run docs-commit && changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major",
+        "release:minor": "npm run docs-commit && changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor",
+        "release:patch": "npm run docs-commit && changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch",
+        "postversion": "git push -u origin HEAD --follow-tags",
+        "prepare": "husky"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.28.6",
+        "@babel/core": "^7.29.0",
+        "@babel/preset-env": "^7.29.2",
+        "@eslint/js": "^10.0.1",
+        "@playwright/test": "^1.59.1",
+        "@vitest/coverage-v8": "^4.1.4",
+        "eslint": "^9.39.4",
+        "generate-changelog": "^1.7.1",
+        "globals": "^17.5.0",
+        "husky": "^9.1.7",
+        "jsdoc": "^3.4.3",
+        "jsdom": "^29.0.2",
+        "prettier": "^3.8.3",
+        "serve": "^14.2.6",
+        "sinon": "^7.2.7",
+        "vite": "^8.0.8",
+        "vitest": "^4.1.4",
+        "webgl-mock": "^0.1.7"
+    },
+    "files": [
+        "dist"
+    ],
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com"
     }
-  ],
-  "scripts": {
-    "dev": "vite build --watch",
-    "build": "vite build",
-    "test": "vitest run",
-    "test-unit": "vitest run test/unit",
-    "test-integration": "vitest run test/integration",
-    "test-watch": "vitest",
-    "test-coverage": "vitest run --coverage",
-    "test-ci:cypress": "start-server-and-test _cy-server http://localhost:3001 _cy:run",
-    "cypress": "./cypress-run.sh docker",
-    "cypress:update-snapshots": "./cypress-run.sh docker-update-snapshots",
-    "cypress:gui": "start-server-and-test _cy-server http://localhost:3001 _cy:open",
-    "cypress:gui-update-snapshots": "start-server-and-test _cy-server http://localhost:3001 _cy:local-update-snapshots",
-    "_cy:local-update-snapshots": "./cypress-run.sh local-update-snapshots",
-    "_cy:open": "./cypress-run.sh local",
-    "_cy:run": "./cypress-run.sh",
-    "_cy-server": "concurrently \"npm run dev\" \"ws -p 3001\"",
-    "docs": "bash ./build-docs.sh",
-    "docs-commit": "npm run docs && git add docs && git diff-index --quiet HEAD || git commit -m 'update docs in preparation for release'",
-    "format": "prettier --write '{src,test}/**/*.js'",
-    "lint": "eslint '{src,test}/**/*.js'",
-    "release:major": "npm run docs-commit && changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major",
-    "release:minor": "npm run docs-commit && changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor",
-    "release:patch": "npm run docs-commit && changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch",
-    "postversion": "git push -u origin HEAD --follow-tags",
-    "prepare": "husky"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.28.6",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@eslint/js": "^10.0.1",
-    "@vitest/coverage-v8": "^4.1.4",
-    "concurrently": "^4.1.1",
-    "cypress": "3.5.0",
-    "cypress-image-snapshot": "^3.1.1",
-    "eslint": "^9.39.4",
-    "eslint-plugin-cypress": "^4.3.0",
-    "generate-changelog": "^1.7.1",
-    "globals": "^17.5.0",
-    "husky": "^9.1.7",
-    "jsdoc": "^3.4.3",
-    "jsdom": "^29.0.2",
-    "local-web-server": "^2.6.1",
-    "prettier": "^3.8.3",
-    "sinon": "^7.2.7",
-    "start-server-and-test": "^1.7.11",
-    "vite": "^8.0.8",
-    "vitest": "^4.1.4",
-    "webgl-mock": "^0.1.7"
-  },
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  }
 }

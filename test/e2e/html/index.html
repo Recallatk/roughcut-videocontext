@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en-GB">
+    <head>
+        <meta charset="utf-8" />
+        <title>VideoContext E2E Tests</title>
+        <!-- Absolute path so this page can be served from any location -->
+        <script type="text/javascript" src="/dist/videocontext.js"></script>
+    </head>
+
+    <body>
+        <canvas id="canvas" width="1920" height="1080" style="width: 500px"></canvas>
+
+        <script type="text/javascript">
+            window.onload = function () {
+                window.ctx = new VideoContext(canvas);
+            };
+        </script>
+    </body>
+</html>

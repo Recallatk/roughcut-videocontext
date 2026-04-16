@@ -17,3 +17,7 @@ coverage
 /dist
 
 __diff_output__
+
+# Playwright
+playwright-report/
+test-results/

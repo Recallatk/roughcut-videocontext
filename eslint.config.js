@@ -1,6 +1,5 @@
 import js from "@eslint/js";
 import globals from "globals";
-import cypress from "eslint-plugin-cypress/flat";
 
 export default [
     // Base recommended rules
@@ -28,36 +27,8 @@ export default [
         }
     },
 
-    // Cypress test files
-    {
-        files: ["test/cypress/**/*.js"],
-        plugins: { cypress },
-        languageOptions: {
-            ecmaVersion: 2024,
-            sourceType: "module",
-            globals: {
-                ...globals.browser,
-                ...globals.node,
-                cy: "readonly",
-                Cypress: "readonly",
-                expect: "readonly",
-                assert: "readonly",
-                before: "readonly",
-                after: "readonly",
-                beforeEach: "readonly",
-                afterEach: "readonly",
-                describe: "readonly",
-                it: "readonly",
-                context: "readonly"
-            }
-        },
-        rules: {
-            ...cypress.configs.recommended.rules
-        }
-    },
-
     // Global ignores (replaces .eslintignore)
     {
-        ignores: ["node_modules/**", "dist/**"]
+        ignores: ["node_modules/**", "dist/**", "playwright-report/**", "test-results/**"]
     }
 ];
