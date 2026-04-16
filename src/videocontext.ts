@@ -1,11 +1,6 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
 import {
-    createSigmaGraphDataFromRenderGraph,
-    visualiseVideoContextTimeline,
-    visualiseVideoContextGraph,
-    createControlFormForNode,
     UpdateablesManager,
-    exportToJSON,
     importSimpleEDL,
     snapshot,
     generateRandomId
@@ -26,7 +21,7 @@ import DEFINITIONS from "./Definitions/definitions.js";
 
 let updateablesManager = new UpdateablesManager();
 
-interface VideoContextOptions {
+export interface VideoContextOptions {
     manualUpdate?: boolean;
     endOnLastSourceEnd?: boolean;
     useVideoElementCache?: boolean;
@@ -42,42 +37,47 @@ interface VideoContextOptions {
  */
 export default class VideoContext {
     // ---------------------------------------------------------------------------
-    // Instance property declarations
+    // Private instance properties — not part of the public API
     // ---------------------------------------------------------------------------
-    _canvas: HTMLCanvasElement;
-    _endOnLastSourceEnd: boolean;
-    _gl: WebGLRenderingContext | null;
-    _useVideoElementCache: boolean;
-    _videoElementCache: VideoElementCache | undefined;
-    _id: string;
-    _renderGraph: RenderGraph;
-    _sourceNodes: any[];
-    _processingNodes: any[];
-    _timeline: any[];
-    _currentTime: number;
-    _state: number;
-    _playbackRate: number;
-    _volume: number;
-    _sourcesPlaying: boolean | undefined;
-    _destinationNode: DestinationNode;
-    _stallStartTime: number | null;
-    _stallTimeout: number;
-    _seekDebounce: number;
-    _seekDebounceTimer: ReturnType<typeof setTimeout> | null;
-    _callbacks: Map<string, Array<(currentTime: number) => void>>;
-    _timelineCallbacks: Array<{ time: number; func: () => void; ordering: number }>;
+    private _canvas: HTMLCanvasElement;
+    private _endOnLastSourceEnd: boolean;
+    private _gl: WebGLRenderingContext | null;
+    private _useVideoElementCache: boolean;
+    private _videoElementCache: VideoElementCache | undefined;
+    private _id: string;
+    private _renderGraph: RenderGraph;
+    private _sourceNodes: any[];
+    private _processingNodes: any[];
+    private _timeline: any[];
+    private _currentTime: number;
+    private _state: number;
+    private _playbackRate: number;
+    private _volume: number;
+    private _sourcesPlaying: boolean | undefined;
+    private _destinationNode: DestinationNode;
+    private _stallStartTime: number | null;
+    private _stallTimeout: number;
+    private _seekDebounce: number;
+    private _seekDebounceTimer: ReturnType<typeof setTimeout> | null;
+    private _callbacks: Map<string, Array<(currentTime: number) => void>>;
+    private _timelineCallbacks: Array<{ time: number; func: () => void; ordering: number }>;
 
     // ---------------------------------------------------------------------------
     // Static member declarations (assigned below class definition)
     // ---------------------------------------------------------------------------
     static readonly STATE: { PLAYING: 0; PAUSED: 1; STALLED: 2; ENDED: 3; BROKEN: 4 };
-    static readonly EVENTS: { UPDATE: "update"; STALLED: "stalled"; ENDED: "ended"; CONTENT: "content"; NOCONTENT: "nocontent" };
-    static visualiseVideoContextTimeline: typeof visualiseVideoContextTimeline;
-    static visualiseVideoContextGraph: typeof visualiseVideoContextGraph;
-    static createControlFormForNode: typeof createControlFormForNode;
-    static createSigmaGraphDataFromRenderGraph: typeof createSigmaGraphDataFromRenderGraph;
-    static exportToJSON: typeof exportToJSON;
-    static updateablesManager: UpdateablesManager;
+    static readonly EVENTS: {
+        UPDATE: "update";
+        STALLED: "stalled";
+        ENDED: "ended";
+        CONTENT: "content";
+        NOCONTENT: "nocontent";
+    };
+    /**
+     * Import a simple EDL (Edit Decision List) playlist into the VideoContext.
+     * @param {VideoContext} ctx - The VideoContext instance to import into.
+     * @param {Array} playlist - Array of clip objects with type, src, start, stop and optional sourceStart.
+     */
     static importSimpleEDL: typeof importSimpleEDL;
     /**
      * Initialise the VideoContext and render to the specific canvas. A 2nd parameter can be passed to the constructor which is a function that get's called if the VideoContext fails to initialise.
@@ -272,7 +272,7 @@ export default class VideoContext {
         return false;
     }
 
-    _callCallbacks(type) {
+    private _callCallbacks(type) {
         let funcArray = this._callbacks.get(type);
         for (let func of funcArray) {
             func(this._currentTime);
@@ -338,7 +338,7 @@ export default class VideoContext {
         }
     }
 
-    _flushSeek(currentTime) {
+    private _flushSeek(currentTime) {
         for (let i = 0; i < this._sourceNodes.length; i++) {
             this._sourceNodes[i]._seek(currentTime);
         }
@@ -576,16 +576,6 @@ export default class VideoContext {
     }
 
     /**
-     * @deprecated
-     */
-    createVideoSourceNode(src, sourceOffset = 0, preloadTime = 4, videoElementAttributes = {}) {
-        this._deprecate(
-            "Warning: createVideoSourceNode will be deprecated in v1.0, please switch to using VideoContext.video()"
-        );
-        return this.video(src, sourceOffset, preloadTime, videoElementAttributes);
-    }
-
-    /**
      * Create a new node representing an image source
      * @param {string|Image|ImageBitmap} src - The url or image element to create the image node from.
      * @param {number} [preloadTime=4] - How long before a node is to be displayed to attmept to load it.
@@ -617,16 +607,6 @@ export default class VideoContext {
     }
 
     /**
-     * @deprecated
-     */
-    createImageSourceNode(src, sourceOffset = 0, preloadTime = 4, imageElementAttributes = {}) {
-        this._deprecate(
-            "Warning: createImageSourceNode will be deprecated in v1.0, please switch to using VideoContext.image()"
-        );
-        return this.image(src, preloadTime, imageElementAttributes);
-    }
-
-    /**
      * Create a new node representing a canvas source
      * @param {Canvas} src - The canvas element to create the canvas node from.
      * @return {CanvasNode} A new canvas node.
@@ -638,16 +618,6 @@ export default class VideoContext {
     }
 
     /**
-     * @deprecated
-     */
-    createCanvasSourceNode(canvas, sourceOffset = 0, preloadTime = 4) {
-        this._deprecate(
-            "Warning: createCanvasSourceNode will be deprecated in v1.0, please switch to using VideoContext.canvas()"
-        );
-        return this.canvas(canvas);
-    }
-
-    /**
      * Create a new effect node.
      * @param {Object} definition - this is an object defining the shaders, inputs, and properties of the compositing node to create. Builtin definitions can be found by accessing VideoContext.DEFINITIONS.
      * @return {EffectNode} A new effect node created from the passed definition
@@ -656,16 +626,6 @@ export default class VideoContext {
         let effectNode = new EffectNode(this._gl, this._renderGraph, definition);
         this._processingNodes.push(effectNode);
         return effectNode;
-    }
-
-    /**
-     * @deprecated
-     */
-    createEffectNode(definition) {
-        this._deprecate(
-            "Warning: createEffectNode will be deprecated in v1.0, please switch to using VideoContext.effect()"
-        );
-        return this.effect(definition);
     }
 
     /**
@@ -755,16 +715,6 @@ export default class VideoContext {
     }
 
     /**
-     * @depricated
-     */
-    createCompositingNode(definition) {
-        this._deprecate(
-            "Warning: createCompositingNode will be deprecated in v1.0, please switch to using VideoContext.compositor()"
-        );
-        return this.compositor(definition);
-    }
-
-    /**
      * Create a new transition node.
      *
      * Transistion nodes are a type of effect node which have parameters which can be changed as events on the timeline.
@@ -848,24 +798,14 @@ export default class VideoContext {
         return transitionNode;
     }
 
-    /**
-     * @deprecated
-     */
-    createTransitionNode(definition) {
-        this._deprecate(
-            "Warning: createTransitionNode will be deprecated in v1.0, please switch to using VideoContext.transition()"
-        );
-        return this.transition(definition);
-    }
-
-    _isSourceNodeActive(sourceNode, currentTime = this._currentTime) {
+    private _isSourceNodeActive(sourceNode, currentTime = this._currentTime) {
         const startTime = sourceNode.startTime;
         const stopTime = sourceNode.stopTime;
 
         return !isNaN(startTime) && currentTime >= startTime && currentTime < stopTime;
     }
 
-    _isStalled() {
+    private _isStalled() {
         for (let i = 0; i < this._sourceNodes.length; i++) {
             let sourceNode = this._sourceNodes[i];
             if (this._isSourceNodeActive(sourceNode) && !sourceNode._isReady()) {
@@ -899,7 +839,7 @@ export default class VideoContext {
         this._update(dt);
     }
 
-    _update(dt) {
+    private _update(dt) {
         //Remove any destroyed nodes
         this._sourceNodes = this._sourceNodes.filter((sourceNode) => {
             if (!sourceNode.destroyed) return sourceNode;
@@ -1056,7 +996,9 @@ export default class VideoContext {
     }
 
     /**
-     * Destroy all nodes in the graph and reset the timeline. After calling this any created nodes will be unusable.
+     * Destroy all nodes in the graph and reset the timeline to its initial state.
+     * All registered callbacks are cleared. Previously created nodes are destroyed
+     * and should not be reused — create new nodes after calling reset().
      */
     reset() {
         for (let node of this._sourceNodes) {
@@ -1095,10 +1037,6 @@ export default class VideoContext {
         if (window.__VIDEOCONTEXT_REFS__) {
             delete window.__VIDEOCONTEXT_REFS__[this._id];
         }
-    }
-
-    _deprecate(msg) {
-        console.log(msg);
     }
 
     static get DEFINITIONS() {
@@ -1141,10 +1079,4 @@ export default class VideoContext {
     NOCONTENT: "nocontent"
 });
 
-VideoContext.visualiseVideoContextTimeline = visualiseVideoContextTimeline;
-VideoContext.visualiseVideoContextGraph = visualiseVideoContextGraph;
-VideoContext.createControlFormForNode = createControlFormForNode;
-VideoContext.createSigmaGraphDataFromRenderGraph = createSigmaGraphDataFromRenderGraph;
-VideoContext.exportToJSON = exportToJSON;
-VideoContext.updateablesManager = updateablesManager;
 VideoContext.importSimpleEDL = importSimpleEDL;

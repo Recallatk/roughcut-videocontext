@@ -69,7 +69,7 @@ describe("VideoContext", function () {
 
         it("should return Infinity if no stop time has been specified on one of the Nodes", function () {
             var imageElement = document.createElement("img");
-            var imageNode = videocontext.createImageSourceNode(imageElement);
+            var imageNode = videocontext.image(imageElement);
 
             imageNode.start(0);
             expect(videocontext.duration).toBe(Infinity);
