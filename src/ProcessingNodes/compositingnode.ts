@@ -5,6 +5,8 @@ import { createElementTexture } from "../utils.js";
 const TYPE = "CompositingNode";
 
 class CompositingNode extends ProcessingNode {
+    _placeholderTexture: WebGLTexture | null;
+
     /**
      * Initialise an instance of a Compositing Node. You should not instantiate this directly, but use VideoContest.createCompositingNode().
      */

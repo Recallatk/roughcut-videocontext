@@ -5,6 +5,8 @@ import { createElementTexture } from "../utils.js";
 const TYPE = "EffectNode";
 
 class EffectNode extends ProcessingNode {
+    _placeholderTexture: WebGLTexture | null;
+
     /**
      * Initialise an instance of an EffectNode. You should not instantiate this directly, but use VideoContest.createEffectNode().
      */

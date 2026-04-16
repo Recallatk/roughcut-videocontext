@@ -3,6 +3,8 @@ import SourceNode, { SOURCENODESTATE } from "./sourcenode";
 
 const TYPE = "CanvasNode";
 class CanvasNode extends SourceNode {
+    _preloadTime: number;
+
     /**
      * Initialise an instance of a CanvasNode.
      * This should not be called directly, but created through a call to videoContext.createCanvasNode();

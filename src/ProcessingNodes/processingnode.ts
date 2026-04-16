@@ -11,6 +11,24 @@ import { RenderException } from "../exceptions.js";
 const TYPE = "ProcessingNode";
 
 class ProcessingNode extends GraphNode {
+    _vertexShader: WebGLShader | null;
+    _fragmentShader: WebGLShader | null;
+    _definition: any;
+    _properties: Record<string, any>;
+    _shaderInputsTextureUnitMapping: Array<{
+        name: string;
+        textureUnit: number;
+        textureUnitIndex: number;
+        location: WebGLUniformLocation | null;
+    }>;
+    _maxTextureUnits: number;
+    _boundTextureUnits: number;
+    _texture: WebGLTexture | null;
+    _program: WebGLProgram | null;
+    _framebuffer: WebGLFramebuffer | null;
+    _currentTimeLocation: WebGLUniformLocation | null;
+    _currentTime: number;
+
     /**
      * Initialise an instance of a ProcessingNode.
      *
@@ -211,7 +229,7 @@ class ProcessingNode extends GraphNode {
         gl.useProgram(this._program);
 
         //upload the default uniforms
-        gl.uniform1f(this._currentTimeLocation, parseFloat(this._currentTime));
+        gl.uniform1f(this._currentTimeLocation, this._currentTime);
 
         for (let propertyName in this._properties) {
             let propertyValue = this._properties[propertyName].value;

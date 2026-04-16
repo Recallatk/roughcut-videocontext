@@ -3,6 +3,11 @@ import SourceNode, { SOURCENODESTATE } from "./sourcenode";
 
 const TYPE = "CanvasNode";
 class ImageNode extends SourceNode {
+    _preloadTime: number;
+    _attributes: Record<string, any>;
+    _textureUploaded: boolean;
+    _image: HTMLImageElement | undefined;
+
     /**
      * Initialise an instance of an ImageNode.
      * This should not be called directly, but created through a call to videoContext.createImageNode();
@@ -46,7 +51,7 @@ class ImageNode extends SourceNode {
                     this._triggerCallbacks("loaded");
                 }
             };
-            this._image.src = this._elementURL;
+            this._image.src = this._elementURL as string;
             this._image.onerror = () => {
                 console.error("ImageNode failed to load. url:", this._elementURL);
             };

@@ -4,6 +4,9 @@ import EffectNode from "./effectnode";
 const TYPE = "TransitionNode";
 
 class TransitionNode extends EffectNode {
+    _transitions: Record<string, any[]>;
+    _initialPropertyValues: Record<string, any>;
+
     /**
      * Initialise an instance of a TransitionNode. You should not instantiate this directly, but use VideoContest.createTransitonNode().
      */
