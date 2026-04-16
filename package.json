@@ -1,6 +1,6 @@
 {
     "name": "@recallatk/videocontext",
-    "version": "0.54.0-roughcut.3.1",
+    "version": "0.54.0-roughcut.4.0",
     "description": "A WebGL & HTML5 graph based video composition library",
     "repository": {
         "type": "git",
