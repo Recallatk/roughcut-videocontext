@@ -1,6 +1,6 @@
 {
     "name": "@recallatk/videocontext",
-    "version": "0.54.0-roughcut.3.4",
+    "version": "0.54.0-roughcut.4.0",
     "description": "A WebGL & HTML5 graph based video composition library",
     "repository": {
         "type": "git",
@@ -41,6 +41,7 @@
         "docs": "bash ./build-docs.sh",
         "docs-commit": "npm run docs && git add docs && git diff-index --quiet HEAD || git commit -m 'update docs in preparation for release'",
         "format": "prettier --write '{src,test}/**/*.js'",
+        "typecheck": "tsc --noEmit",
         "lint": "eslint '{src,test}/**/*.js'",
         "release:major": "npm run docs-commit && changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major",
         "release:minor": "npm run docs-commit && changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor",
@@ -63,6 +64,7 @@
         "jsdom": "^29.0.2",
         "prettier": "^3.8.3",
         "serve": "^14.2.6",
+        "typescript": "^6.0.2",
         "vite": "^8.0.8",
         "vitest": "^4.1.4",
         "webgl-mock": "^0.1.7"
