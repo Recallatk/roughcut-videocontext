@@ -8,6 +8,99 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
+### 0.54.0-roughcut.6.3 (2026-04-16)
+
+#### Phase 6d — Unit tests: VideoElementCache + VideoElementCacheItem
+
+- Added `test/unit/videoelementcache.spec.js` covering both cache classes
+- `VideoElementCacheItem`: attribute setup (`crossorigin`, `webkit-playsinline`, `playsinline`), `linkNode`/`unlinkNode`, `isPlaying()` across all states, `element` setter
+- `VideoElementCache`: constructor size, `init()` idempotency, `play()` error suppression (`AbortError`, `NotSupportedError`), `getElementAndLinkToNode()` slot allocation and fallback, `unlinkNodeFromElement()`, `length` getter
+- 185 tests passing (was 158)
+
+---
+
+### 0.54.0-roughcut.6.2 (2026-04-16)
+
+#### Phase 6c — Unit tests: all node subclasses
+
+- Added `test/unit/videonode.spec.js` — VideoNode and AudioNode (displayName, `_elementType`, sequencing, callbacks, `clearTimelineState`, texture-update suppression)
+- Added `test/unit/imagenode.spec.js` — ImageNode (`_load`, `onload`/`onerror` callbacks, `_unload`) and CanvasNode (`_load` sets `_ready` immediately, state transitions)
+- Added `test/unit/processingnode.spec.js` — `setProperty`/`getProperty`, array property deep-copy, `_update`/`_seek` set `_currentTime`, `limitConnections` behaviour
+- Added `test/unit/effectnode-compositingnode.spec.js` — instanceof chain, `maximumConnections` (limited vs unlimited), inherited property/update behaviour
+- Added `test/unit/transitionnode.spec.js` — `transition()`/`transitionAt()`, overlap rejection, `clearTransitions`/`clearTransition`, mid-transition interpolation
+- Fixed `ImageNode._unload`: guard `window.ImageBitmap` before `instanceof` to avoid `TypeError` in environments without `createImageBitmap`
+- 158 tests passing (was 81)
+
+---
+
+### 0.54.0-roughcut.6.1 (2026-04-16)
+
+#### Phase 6b — TypeScript strict mode
+
+- Enabled `strict: true` and `noImplicitAny: true` in `tsconfig.json`
+- Resolved 306 type errors across 15 source files
+- No runtime behaviour changes; build output and all unit tests unchanged
+- 81 tests passing
+
+---
+
+### 0.54.0-roughcut.6.0 (2026-04-16)
+
+#### Phase 6a — ESLint extended to TypeScript source files
+
+- Added `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser`
+- Extended `eslint.config.js` flat config to cover `src/**/*.ts` files
+- Resolved all initial lint errors in TypeScript source files
+- Lint now runs on `.ts` files in pre-commit hook and CI
+
+---
+
+### 0.54.0-roughcut.5.0 (2026-04-16)
+
+#### Phase 5 — Public API surface
+
+- Defined clean public exports via `src/videocontext.ts`: `VideoContext` (default), `DEFINITIONS`, `SOURCENODESTATE`, `UpdateablesManager`
+- Documented and typed the stable public method and property surface
+- Marked internal implementation details with `private`/`protected` where applicable
+- Deprecated and removed genuinely dead legacy utilities (`exportToJSON`, Sigma graph helpers)
+
+---
+
+### 0.54.0-roughcut.4.4 (2026-04-16)
+
+#### Phase 4e — TypeScript: utilities and definitions
+
+- Migrated `src/utils.js` → `src/utils.ts`
+- Migrated `src/Definitions/definitions.js` → `src/Definitions/definitions.ts` and all per-effect definition files to TypeScript
+- Full TypeScript coverage across all source files; `allowJs` retained for build compatibility
+- tsc clean, all tests pass
+
+---
+
+### 0.54.0-roughcut.4.3 (2026-04-16)
+
+#### Phase 4d — TypeScript: source and processing nodes
+
+- Migrated all `src/SourceNodes/*.js` → `.ts`: `sourcenode`, `medianode`, `videonode`, `audionode`, `imagenode`, `canvasnode`
+- Migrated all `src/ProcessingNodes/*.js` → `.ts`: `processingnode`, `effectnode`, `compositingnode`, `transitionnode`
+- Migrated `src/DestinationNode/destinationnode.js` → `.ts`
+- Migrated `src/videoelementcache.js` and `src/videoelementcacheitem.js` → `.ts`
+- tsc clean, build unchanged
+
+---
+
+### 0.54.0-roughcut.4.2 (2026-04-16)
+
+#### Phase 4c — TypeScript: base classes
+
+- Migrated `src/graphnode.js` → `src/graphnode.ts`
+- Migrated `src/rendergraph.js` → `src/rendergraph.ts`
+- Migrated `src/exceptions.js` → `src/exceptions.ts`
+- Added typed signatures for all public methods; `strict: false` retained at this phase
+- tsc clean, build unchanged, all tests pass
+
+---
+
 ### 0.54.0-roughcut.4.1 (2026-04-16)
 
 #### Phase 4b — TypeScript: VideoContext migration
@@ -102,22 +195,11 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ## Planned
 
-### 0.54.0-roughcut.4.x — Phase 4 continued (TypeScript migration)
+### Phase 7 — Cache and transport hardening
 
-- **4c** Migrate base classes to TypeScript: `graphnode.js`, `sourcenode.js`, `medianode.js`, `rendergraph.js`
-- **4d** Migrate processing and source nodes to TypeScript
-- **4e** Type definitions for the shader/definition system
-
-### Phase 5 — Public API definition
-
-- Define a clean, documented public API surface using TypeScript types and exports
-- Mark internal implementation details with `private`/`protected`
-- Deprecate and remove genuinely dead/legacy utilities (e.g. `exportToJSON`, Sigma graph helpers)
-
-### Phase 6 — Modernisation
-
-- Stronger test coverage across all node types
-- Modernise build and test tooling as needed
+- `VideoElementCache.init()` lazy-init: avoid unconditional `play()` on construction
+- `MediaNode` `AbortError` recovery: ensure `_isElementPlaying` resets on all error paths
+- Additional integration coverage for cache lifecycle under rapid seek/reset
 - Decouple app integration through an adapter boundary
 
 ---
