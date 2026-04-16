@@ -862,6 +862,11 @@ export class UpdateablesManager {
             this._init();
         }
     }
+
+    unregister(updateable) {
+        let index = this._updateables.indexOf(updateable);
+        if (index !== -1) this._updateables.splice(index, 1);
+    }
 }
 
 export function mediaElementHasSource({ src, srcObject }) {

@@ -1008,9 +1008,6 @@ export default class VideoContext {
      * Destroy all nodes in the graph and reset the timeline. After calling this any created nodes will be unusable.
      */
     reset() {
-        for (let callback of this._callbacks) {
-            this.unregisterCallback(callback);
-        }
         for (let node of this._sourceNodes) {
             node.destroy();
         }
@@ -1034,6 +1031,19 @@ export default class VideoContext {
             this._callbacks.set(VideoContext.EVENTS[name], [])
         );
         this._timelineCallbacks = [];
+    }
+
+    /**
+     * Fully tear down the VideoContext — stops playback, destroys all nodes,
+     * deregisters from the update loop, and removes the global reference.
+     * Call this when the VideoContext is no longer needed (e.g. component unmount).
+     */
+    destroy() {
+        this.reset();
+        updateablesManager.unregister(this);
+        if (window.__VIDEOCONTEXT_REFS__) {
+            delete window.__VIDEOCONTEXT_REFS__[this._id];
+        }
     }
 
     _deprecate(msg) {
