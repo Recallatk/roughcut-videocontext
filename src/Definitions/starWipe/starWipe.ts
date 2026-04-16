@@ -1,7 +1,7 @@
 import vertexShader from "./starWipe.vert";
 import fragmentShader from "./starWipe.frag";
 
-let starWipe = {
+const starWipe = {
     title: "Star Wipe Fade",
     description: "A classic star wipe transistion. Typically used as a transistion.",
     vertexShader,

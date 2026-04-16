@@ -41,13 +41,13 @@ class ProcessingNode extends GraphNode {
         this._definition = definition;
         this._properties = {}; //definition.properties;
         //copy definition properties
-        for (let propertyName in definition.properties) {
+        for (const propertyName in definition.properties) {
             let propertyValue = definition.properties[propertyName].value;
             //if an array then shallow copy it
             if (Object.prototype.toString.call(propertyValue) === "[object Array]") {
                 propertyValue = definition.properties[propertyName].value.slice();
             }
-            let propertyType = definition.properties[propertyName].type;
+            const propertyType = definition.properties[propertyName].type;
             this._properties[propertyName] = {
                 type: propertyType,
                 value: propertyValue
@@ -85,7 +85,7 @@ class ProcessingNode extends GraphNode {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         //create properties on this object for the passed properties
-        for (let propertyName in this._properties) {
+        for (const propertyName in this._properties) {
             Object.defineProperty(this, propertyName, {
                 get: function () {
                     return this._properties[propertyName].value;
@@ -97,8 +97,8 @@ class ProcessingNode extends GraphNode {
         }
 
         //create texutres for any texture properties
-        for (let propertyName in this._properties) {
-            let propertyValue = this._properties[propertyName].value;
+        for (const propertyName in this._properties) {
+            const propertyValue = this._properties[propertyName].value;
             if (propertyValue instanceof Image) {
                 this._properties[propertyName].texture = createElementTexture(gl);
                 this._properties[propertyName].textureUnit = gl.TEXTURE0 + this._boundTextureUnits;
@@ -113,7 +113,7 @@ class ProcessingNode extends GraphNode {
         }
 
         // calculate texture units for input textures
-        for (let inputName of definition.inputs) {
+        for (const inputName of definition.inputs) {
             this._shaderInputsTextureUnitMapping.push({
                 name: inputName,
                 textureUnit: gl.TEXTURE0 + this._boundTextureUnits,
@@ -129,7 +129,7 @@ class ProcessingNode extends GraphNode {
         }
 
         //find the locations of the properties in the compiled shader
-        for (let propertyName in this._properties) {
+        for (const propertyName in this._properties) {
             if (this._properties[propertyName].type === "uniform") {
                 this._properties[propertyName].location = this._gl.getUniformLocation(
                     this._program,
@@ -141,8 +141,8 @@ class ProcessingNode extends GraphNode {
         this._currentTime = 0;
 
         //Other setup
-        let positionLocation = gl.getAttribLocation(this._program, "a_position");
-        let buffer = gl.createBuffer();
+        const positionLocation = gl.getAttribLocation(this._program, "a_position");
+        const buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.enableVertexAttribArray(positionLocation);
         gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
@@ -151,7 +151,7 @@ class ProcessingNode extends GraphNode {
             new Float32Array([1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
             gl.STATIC_DRAW
         );
-        let texCoordLocation = gl.getAttribLocation(this._program, "a_texCoord");
+        const texCoordLocation = gl.getAttribLocation(this._program, "a_texCoord");
         gl.enableVertexAttribArray(texCoordLocation);
         gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
         this._displayName = TYPE;
@@ -191,8 +191,8 @@ class ProcessingNode extends GraphNode {
     destroy() {
         super.destroy();
         //destrpy texutres for any texture properties
-        for (let propertyName in this._properties) {
-            let propertyValue = this._properties[propertyName].value;
+        for (const propertyName in this._properties) {
+            const propertyValue = this._properties[propertyName].value;
             if (propertyValue instanceof Image) {
                 this._gl.deleteTexture(this._properties[propertyName].texture);
                 this._texture = undefined;
@@ -223,7 +223,7 @@ class ProcessingNode extends GraphNode {
 
     _render() {
         this._rendered = true;
-        let gl = this._gl;
+        const gl = this._gl;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         gl.useProgram(this._program);
@@ -231,10 +231,10 @@ class ProcessingNode extends GraphNode {
         //upload the default uniforms
         gl.uniform1f(this._currentTimeLocation, this._currentTime);
 
-        for (let propertyName in this._properties) {
-            let propertyValue = this._properties[propertyName].value;
-            let propertyType = this._properties[propertyName].type;
-            let propertyLocation = this._properties[propertyName].location;
+        for (const propertyName in this._properties) {
+            const propertyValue = this._properties[propertyName].value;
+            const propertyType = this._properties[propertyName].type;
+            const propertyLocation = this._properties[propertyName].location;
             if (propertyType !== "uniform") continue;
 
             if (typeof propertyValue === "number") {
@@ -257,9 +257,9 @@ class ProcessingNode extends GraphNode {
                     );
                 }
             } else if (propertyValue instanceof Image) {
-                let texture = this._properties[propertyName].texture;
-                let textureUnit = this._properties[propertyName].textureUnit;
-                let textureUnitIndex = this._properties[propertyName].textureUnit;
+                const texture = this._properties[propertyName].texture;
+                const textureUnit = this._properties[propertyName].textureUnit;
+                const textureUnitIndex = this._properties[propertyName].textureUnit;
                 updateTexture(gl, texture, propertyValue);
 
                 gl.activeTexture(textureUnit);

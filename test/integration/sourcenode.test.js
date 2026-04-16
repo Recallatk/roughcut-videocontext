@@ -1,7 +1,7 @@
 import VideoContext from "../../src/videocontext";
 
 let videocontext;
-require("webgl-mock");
+import "webgl-mock";
 
 beforeEach(function () {
     const canvas = new HTMLCanvasElement(500, 500);

@@ -1,7 +1,7 @@
 import vertexShader from "./randomDissolve.vert";
 import fragmentShader from "./randomDissolve.frag";
 
-let randomDissolve = {
+const randomDissolve = {
     title: "Random Dissolve",
     description: "A random dissolve effect. Typically used as a transistion.",
     vertexShader,

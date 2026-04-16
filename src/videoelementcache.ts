@@ -15,7 +15,7 @@ class VideoElementCache {
 
     init() {
         if (!this._cacheItemsInitialised) {
-            for (let cacheItem of this._cacheItems) {
+            for (const cacheItem of this._cacheItems) {
                 try {
                     cacheItem.element.play().then(
                         () => {
@@ -44,7 +44,7 @@ class VideoElementCache {
      */
     getElementAndLinkToNode(mediaNode) {
         // Try and get an already intialised element.
-        for (let cacheItem of this._cacheItems) {
+        for (const cacheItem of this._cacheItems) {
             // For some reason an uninitialised videoElement has its sr attribute set to the windows href. Hence the below check.
             if (!mediaElementHasSource(cacheItem.element)) {
                 // attach node to the element
@@ -56,7 +56,7 @@ class VideoElementCache {
         console.debug(
             "No available video element in the cache, creating a new one. This may break mobile, make your initial cache larger."
         );
-        let cacheItem = new VideoElementCacheItem(mediaNode);
+        const cacheItem = new VideoElementCacheItem(mediaNode);
         this._cacheItems.push(cacheItem);
         this._cacheItemsInitialised = false;
         return cacheItem.element;
@@ -68,7 +68,7 @@ class VideoElementCache {
      * @param {VideoElement} element The element to unlink from any media nodes
      */
     unlinkNodeFromElement(element) {
-        for (let cacheItem of this._cacheItems) {
+        for (const cacheItem of this._cacheItems) {
             // Unlink the node from the element
             if (element === cacheItem._element) {
                 cacheItem.unlinkNode();
@@ -82,7 +82,7 @@ class VideoElementCache {
 
     get unused() {
         let count = 0;
-        for (let cacheItem of this._cacheItems) {
+        for (const cacheItem of this._cacheItems) {
             // For some reason an uninitialised videoElement has its sr attribute set to the windows href. Hence the below check.
             if (!mediaElementHasSource(cacheItem.element)) count += 1;
         }

@@ -1,7 +1,7 @@
 import vertexShader from "./crop.vert";
 import fragmentShader from "./crop.frag";
 
-let crop = {
+const crop = {
     title: "Primer Simple Crop",
     description: "A simple crop processors for primer",
     vertexShader,

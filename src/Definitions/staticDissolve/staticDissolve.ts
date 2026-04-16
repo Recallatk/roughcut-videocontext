@@ -1,7 +1,7 @@
 import vertexShader from "./staticDissolve.vert";
 import fragmentShader from "./staticDissolve.frag";
 
-let staticDissolve = {
+const staticDissolve = {
     title: "Static Dissolve",
     description: "A static dissolve effect. Typically used as a transistion.",
     vertexShader,

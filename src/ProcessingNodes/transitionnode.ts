@@ -16,7 +16,7 @@ class TransitionNode extends EffectNode {
 
         //save a version of the original property values
         this._initialPropertyValues = {};
-        for (let propertyName in this._properties) {
+        for (const propertyName in this._properties) {
             this._initialPropertyValues[propertyName] = this._properties[propertyName].value;
         }
         this._displayName = TYPE;
@@ -24,7 +24,7 @@ class TransitionNode extends EffectNode {
 
     _doesTransitionFitOnTimeline(testTransition) {
         if (this._transitions[testTransition.property] === undefined) return true;
-        for (let transition of this._transitions[testTransition.property]) {
+        for (const transition of this._transitions[testTransition.property]) {
             if (testTransition.start > transition.start && testTransition.start < transition.end)
                 return false;
             if (testTransition.end > transition.start && testTransition.end < transition.end)
@@ -59,7 +59,7 @@ class TransitionNode extends EffectNode {
      * @return {Boolean} returns True if a transition is successfully added, false otherwise.
      */
     transition(startTime, endTime, currentValue, targetValue, propertyName = "mix") {
-        let transition = {
+        const transition = {
             start: startTime + this._currentTime,
             end: endTime + this._currentTime,
             current: currentValue,
@@ -83,7 +83,7 @@ class TransitionNode extends EffectNode {
      * @return {Boolean} returns True if a transition is successfully added, false otherwise.
      */
     transitionAt(startTime, endTime, currentValue, targetValue, propertyName = "mix") {
-        let transition = {
+        const transition = {
             start: startTime,
             end: endTime,
             current: currentValue,
@@ -118,8 +118,8 @@ class TransitionNode extends EffectNode {
      */
     clearTransition(propertyName, time) {
         let transitionIndex = undefined;
-        for (var i = 0; i < this._transitions[propertyName].length; i++) {
-            let transition = this._transitions[propertyName][i];
+        for (let i = 0; i < this._transitions[propertyName].length; i++) {
+            const transition = this._transitions[propertyName][i];
             if (time > transition.start && time < transition.end) {
                 transitionIndex = i;
             }
@@ -133,23 +133,23 @@ class TransitionNode extends EffectNode {
 
     _update(currentTime) {
         super._update(currentTime);
-        for (let propertyName in this._transitions) {
+        for (const propertyName in this._transitions) {
             let value = this[propertyName];
             if (this._transitions[propertyName].length > 0) {
                 value = this._transitions[propertyName][0].current;
             }
             let transitionActive = false;
 
-            for (var i = 0; i < this._transitions[propertyName].length; i++) {
-                let transition = this._transitions[propertyName][i];
+            for (let i = 0; i < this._transitions[propertyName].length; i++) {
+                const transition = this._transitions[propertyName][i];
                 if (currentTime > transition.end) {
                     value = transition.target;
                     continue;
                 }
 
                 if (currentTime > transition.start && currentTime < transition.end) {
-                    let difference = transition.target - transition.current;
-                    let progress =
+                    const difference = transition.target - transition.current;
+                    const progress =
                         (this._currentTime - transition.start) /
                         (transition.end - transition.start);
                     transitionActive = true;

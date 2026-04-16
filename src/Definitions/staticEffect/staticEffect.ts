@@ -1,7 +1,7 @@
 import vertexShader from "./staticEffect.vert";
 import fragmentShader from "./staticEffect.frag";
 
-let staticEffect = {
+const staticEffect = {
     title: "Static",
     description: "A static effect to add pseudo random noise to a video",
     vertexShader,

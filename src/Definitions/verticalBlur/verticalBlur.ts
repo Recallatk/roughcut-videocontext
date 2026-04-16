@@ -1,7 +1,7 @@
 import vertexShader from "./verticalBlur.vert";
 import fragmentShader from "./verticalBlur.frag";
 
-let verticalBlur = {
+const verticalBlur = {
     title: "Vertical Blur",
     description:
         "A vertical blur effect. Adpated from http://xissburg.com/faster-gaussian-blur-in-glsl/",

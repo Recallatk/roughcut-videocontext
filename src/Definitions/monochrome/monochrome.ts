@@ -1,7 +1,7 @@
 import vertexShader from "./monochrome.vert";
 import fragmentShader from "./monochrome.frag";
 
-let monochrome = {
+const monochrome = {
     title: "Monochrome",
     description:
         "Change images to a single chroma (e.g can be used to make a black & white filter). Input color mix and output color mix can be adjusted.",

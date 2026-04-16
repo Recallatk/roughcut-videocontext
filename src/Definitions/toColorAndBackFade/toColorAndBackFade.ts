@@ -1,7 +1,7 @@
 import vertexShader from "./toColorAndBackFade.vert";
 import fragmentShader from "./toColorAndBackFade.frag";
 
-let toColorAndBackFade = {
+const toColorAndBackFade = {
     title: "To Color And Back Fade",
     description:
         "A fade to black and back effect. Setting mix to 0.5 is a fully solid color frame. Typically used as a transistion.",

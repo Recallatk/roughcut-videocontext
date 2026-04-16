@@ -17,7 +17,7 @@ class VideoElementCacheItem {
     }
 
     _createElement() {
-        let videoElement = document.createElement("video");
+        const videoElement = document.createElement("video");
         videoElement.setAttribute("crossorigin", "anonymous");
         videoElement.setAttribute("webkit-playsinline", "");
         videoElement.setAttribute("playsinline", "");

@@ -11,7 +11,7 @@ class CompositingNode extends ProcessingNode {
      * Initialise an instance of a Compositing Node. You should not instantiate this directly, but use VideoContest.createCompositingNode().
      */
     constructor(gl, renderGraph, definition) {
-        let placeholderTexture = createElementTexture(gl);
+        const placeholderTexture = createElementTexture(gl);
         gl.texImage2D(
             gl.TEXTURE_2D,
             0,
@@ -29,7 +29,7 @@ class CompositingNode extends ProcessingNode {
     }
 
     _render() {
-        let gl = this._gl;
+        const gl = this._gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
         gl.framebufferTexture2D(
             gl.FRAMEBUFFER,
@@ -47,9 +47,9 @@ class CompositingNode extends ProcessingNode {
             super._render();
 
             //map the input textures input the node
-            var texture = node._texture;
+            const texture = node._texture;
 
-            for (let mapping of this._shaderInputsTextureUnitMapping) {
+            for (const mapping of this._shaderInputsTextureUnitMapping) {
                 gl.activeTexture(mapping.textureUnit);
                 gl.uniform1i(mapping.location, mapping.textureUnitIndex);
                 gl.bindTexture(gl.TEXTURE_2D, texture);

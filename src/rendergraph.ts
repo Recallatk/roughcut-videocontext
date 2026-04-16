@@ -25,7 +25,7 @@ class RenderGraph {
      * @return {GraphNode[]} An array of the nodes which are connected to the output.
      */
     getOutputsForNode(node) {
-        let results = [];
+        const results = [];
         this.connections.forEach(function (connection) {
             if (connection.source === node) {
                 results.push(connection.destination);
@@ -41,7 +41,7 @@ class RenderGraph {
      * @return {Object[]} An array of objects representing the nodes and connection type, which are connected to the named inputs for the node.
      */
     getNamedInputsForNode(node) {
-        let results = [];
+        const results = [];
         this.connections.forEach(function (connection) {
             if (connection.destination === node && connection.type === "name") {
                 results.push(connection);
@@ -57,7 +57,7 @@ class RenderGraph {
      * @return {Object[]} An array of objects representing the nodes and connection type, which are connected by z-Index for the node.
      */
     getZIndexInputsForNode(node) {
-        let results = [];
+        const results = [];
         this.connections.forEach(function (connection) {
             if (connection.destination === node && connection.type === "zIndex") {
                 results.push(connection);
@@ -76,18 +76,18 @@ class RenderGraph {
      * @return {GraphNode[]} An array of GraphNodes which are connected to the node.
      */
     getInputsForNode(node) {
-        let inputNames = node.inputNames;
-        let results = [];
-        let namedInputs = this.getNamedInputsForNode(node);
-        let indexedInputs = this.getZIndexInputsForNode(node);
+        const inputNames = node.inputNames;
+        const results = [];
+        const namedInputs = this.getNamedInputsForNode(node);
+        const indexedInputs = this.getZIndexInputsForNode(node);
 
         if (node._limitConnections === true) {
             for (let i = 0; i < inputNames.length; i++) {
                 results[i] = undefined;
             }
 
-            for (let connection of namedInputs) {
-                let index = inputNames.indexOf(connection.name);
+            for (const connection of namedInputs) {
+                const index = inputNames.indexOf(connection.name);
                 results[index] = connection.source;
             }
             let indexedInputsIndex = 0;
@@ -98,10 +98,10 @@ class RenderGraph {
                 }
             }
         } else {
-            for (let connection of namedInputs) {
+            for (const connection of namedInputs) {
                 results.push(connection.source);
             }
-            for (let connection of indexedInputs) {
+            for (const connection of indexedInputs) {
                 results.push(connection.source);
             }
         }
@@ -115,7 +115,7 @@ class RenderGraph {
      */
     isInputAvailable(node, inputName) {
         if (node._inputNames.indexOf(inputName) === -1) return false;
-        for (let connection of this.connections) {
+        for (const connection of this.connections) {
             if (connection.type === "name") {
                 if (connection.destination === node && connection.name === inputName) {
                     return false;
@@ -176,7 +176,7 @@ class RenderGraph {
             }
         } else {
             //target is undefined so just make it a high zIndex
-            let indexedConns = this.getZIndexInputsForNode(destinationNode);
+            const indexedConns = this.getZIndexInputsForNode(destinationNode);
             let index = 0;
             if (indexedConns.length > 0) index = indexedConns[indexedConns.length - 1].zIndex + 1;
             this.connections.push({
@@ -196,7 +196,7 @@ class RenderGraph {
      * @return {boolean} Will return true if removing connection succeeds, or false if there was no connectionsction to remove.
      */
     unregisterConnection(sourceNode, destinationNode) {
-        let toRemove = [];
+        const toRemove = [];
 
         this.connections.forEach(function (connection) {
             if (connection.source === sourceNode && connection.destination === destinationNode) {
@@ -207,7 +207,7 @@ class RenderGraph {
         if (toRemove.length === 0) return false;
 
         toRemove.forEach((removeNode) => {
-            let index = this.connections.indexOf(removeNode);
+            const index = this.connections.indexOf(removeNode);
             this.connections.splice(index, 1);
         });
 
@@ -215,8 +215,8 @@ class RenderGraph {
     }
 
     static outputEdgesFor(node, connections) {
-        let results = [];
-        for (let conn of connections) {
+        const results = [];
+        for (const conn of connections) {
             if (conn.source === node) {
                 results.push(conn);
             }
@@ -225,8 +225,8 @@ class RenderGraph {
     }
 
     static inputEdgesFor(node, connections) {
-        let results = [];
-        for (let conn of connections) {
+        const results = [];
+        for (const conn of connections) {
             if (conn.destination === node) {
                 results.push(conn);
             }
@@ -235,12 +235,12 @@ class RenderGraph {
     }
 
     static getInputlessNodes(connections) {
-        let inputLess = [];
-        for (let conn of connections) {
+        const inputLess = [];
+        for (const conn of connections) {
             inputLess.push(conn.source);
         }
-        for (let conn of connections) {
-            let index = inputLess.indexOf(conn.destination);
+        for (const conn of connections) {
+            const index = inputLess.indexOf(conn.destination);
             if (index !== -1) {
                 inputLess.splice(index, 1);
             }

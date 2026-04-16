@@ -2,7 +2,7 @@
 import { updateTexture, clearTexture, createElementTexture } from "../utils.js";
 import GraphNode from "../graphnode";
 
-let STATE = {
+const STATE = {
     waiting: 0,
     sequenced: 1,
     playing: 2,
@@ -202,22 +202,22 @@ class SourceNode extends GraphNode {
      *
      */
     unregisterCallback(func?: (...args: any[]) => void) {
-        let toRemove = [];
-        for (let callback of this._callbacks) {
+        const toRemove = [];
+        for (const callback of this._callbacks) {
             if (func === undefined) {
                 toRemove.push(callback);
             } else if (callback.func === func) {
                 toRemove.push(callback);
             }
         }
-        for (let callback of toRemove) {
-            let index = this._callbacks.indexOf(callback);
+        for (const callback of toRemove) {
+            const index = this._callbacks.indexOf(callback);
             this._callbacks.splice(index, 1);
         }
     }
 
     _triggerCallbacks(type: string, data?: any) {
-        for (let callback of this._callbacks) {
+        for (const callback of this._callbacks) {
             if (callback.type === type) {
                 if (data !== undefined) {
                     callback.func(this, data);
@@ -373,7 +373,7 @@ class SourceNode extends GraphNode {
 
     _update(currentTime, triggerTextureUpdate = true) {
         this._rendered = true;
-        let timeDelta = currentTime - this._currentTime;
+        const timeDelta = currentTime - this._currentTime;
 
         //update the current time
         this._currentTime = currentTime;

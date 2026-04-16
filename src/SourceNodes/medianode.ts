@@ -119,7 +119,7 @@ class MediaNode extends SourceNode {
         }
         // at this stage either the user or the element cache should have provided an element
         if (this._element) {
-            for (let key in this._attributes) {
+            for (const key in this._attributes) {
                 this._element[key] = this._attributes[key];
             }
 
@@ -211,7 +211,7 @@ class MediaNode extends SourceNode {
             this._element.removeAttribute("src");
             this._element.srcObject = undefined;
             this._element.load();
-            for (let key in this._attributes) {
+            for (const key in this._attributes) {
                 this._element.removeAttribute(key);
             }
             // Unlink this form the cache, freeing up the element for another media node
@@ -231,7 +231,7 @@ class MediaNode extends SourceNode {
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
             if (this._element === undefined) this._load();
-            let relativeTime = this._currentTime - this._startTime + this._sourceOffset;
+            const relativeTime = this._currentTime - this._startTime + this._sourceOffset;
             this._element.currentTime = relativeTime;
             this._ready = false;
         }

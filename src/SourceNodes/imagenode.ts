@@ -26,7 +26,7 @@ class ImageNode extends SourceNode {
 
     _load() {
         if (this._image !== undefined) {
-            for (var key in this._attributes) {
+            for (const key in this._attributes) {
                 this._image[key] = this._attributes[key];
             }
             return;
@@ -56,7 +56,7 @@ class ImageNode extends SourceNode {
                 console.error("ImageNode failed to load. url:", this._elementURL);
             };
 
-            for (let key in this._attributes) {
+            for (const key in this._attributes) {
                 this._image[key] = this._attributes[key];
             }
         }

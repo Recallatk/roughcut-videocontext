@@ -19,7 +19,7 @@ import RenderGraph from "./rendergraph.js";
 import VideoElementCache from "./videoelementcache.js";
 import DEFINITIONS from "./Definitions/definitions.js";
 
-let updateablesManager = new UpdateablesManager();
+const updateablesManager = new UpdateablesManager();
 
 export interface VideoContextOptions {
     manualUpdate?: boolean;
@@ -213,14 +213,14 @@ export default class VideoContext {
      * @param {Function} func - the callback to unregister.
      */
     unregisterTimelineCallback(func) {
-        let toRemove = [];
-        for (let callback of this._timelineCallbacks) {
+        const toRemove = [];
+        for (const callback of this._timelineCallbacks) {
             if (callback.func === func) {
                 toRemove.push(callback);
             }
         }
-        for (let callback of toRemove) {
-            let index = this._timelineCallbacks.indexOf(callback);
+        for (const callback of toRemove) {
+            const index = this._timelineCallbacks.indexOf(callback);
             this._timelineCallbacks.splice(index, 1);
         }
     }
@@ -262,8 +262,8 @@ export default class VideoContext {
      *
      */
     unregisterCallback(func) {
-        for (let funcArray of this._callbacks.values()) {
-            let index = funcArray.indexOf(func);
+        for (const funcArray of this._callbacks.values()) {
+            const index = funcArray.indexOf(func);
             if (index !== -1) {
                 funcArray.splice(index, 1);
                 return true;
@@ -273,8 +273,8 @@ export default class VideoContext {
     }
 
     private _callCallbacks(type) {
-        let funcArray = this._callbacks.get(type);
-        for (let func of funcArray) {
+        const funcArray = this._callbacks.get(type);
+        for (const func of funcArray) {
             func(this._currentTime);
         }
     }
@@ -439,7 +439,7 @@ export default class VideoContext {
         if (rate <= 0) {
             throw new RangeError("playbackRate must be greater than 0");
         }
-        for (let node of this._sourceNodes) {
+        for (const node of this._sourceNodes) {
             if (node.constructor.name === VIDEOTYPE) {
                 node._globalPlaybackRate = rate;
                 node._playbackRateUpdated = true;
@@ -461,7 +461,7 @@ export default class VideoContext {
      * @param {number} volume - the volume to apply to the video nodes.
      */
     set volume(vol) {
-        for (let node of this._sourceNodes) {
+        for (const node of this._sourceNodes) {
             if (node instanceof VideoNode || node instanceof AudioNode) {
                 node.volume = vol;
             }
@@ -531,7 +531,7 @@ export default class VideoContext {
      * var videoNode = ctx.video("bigbuckbunny.mp4");
      */
     video(src, sourceOffset = 0, preloadTime = 4, videoElementAttributes = {}) {
-        let videoNode = new VideoNode(
+        const videoNode = new VideoNode(
             src,
             this._gl,
             this._renderGraph,
@@ -560,7 +560,7 @@ export default class VideoContext {
      * var audioNode = ctx.audio("ziggystardust.mp3");
      */
     audio(src, sourceOffset = 0, preloadTime = 4, audioElementAttributes = {}) {
-        let audioNode = new AudioNode(
+        const audioNode = new AudioNode(
             src,
             this._gl,
             this._renderGraph,
@@ -594,7 +594,7 @@ export default class VideoContext {
      * var imageNode = ctx.image(imageElement);
      */
     image(src, preloadTime = 4, imageElementAttributes = {}) {
-        let imageNode = new ImageNode(
+        const imageNode = new ImageNode(
             src,
             this._gl,
             this._renderGraph,
@@ -612,7 +612,7 @@ export default class VideoContext {
      * @return {CanvasNode} A new canvas node.
      */
     canvas(canvas) {
-        let canvasNode = new CanvasNode(canvas, this._gl, this._renderGraph, this._currentTime);
+        const canvasNode = new CanvasNode(canvas, this._gl, this._renderGraph, this._currentTime);
         this._sourceNodes.push(canvasNode);
         return canvasNode;
     }
@@ -623,7 +623,7 @@ export default class VideoContext {
      * @return {EffectNode} A new effect node created from the passed definition
      */
     effect(definition) {
-        let effectNode = new EffectNode(this._gl, this._renderGraph, definition);
+        const effectNode = new EffectNode(this._gl, this._renderGraph, definition);
         this._processingNodes.push(effectNode);
         return effectNode;
     }
@@ -691,7 +691,7 @@ export default class VideoContext {
      *
      */
     compositor(definition) {
-        let compositingNode = new CompositingNode(this._gl, this._renderGraph, definition);
+        const compositingNode = new CompositingNode(this._gl, this._renderGraph, definition);
         this._processingNodes.push(compositingNode);
         return compositingNode;
     }
@@ -793,7 +793,7 @@ export default class VideoContext {
      * ctx.play();
      */
     transition(definition) {
-        let transitionNode = new TransitionNode(this._gl, this._renderGraph, definition);
+        const transitionNode = new TransitionNode(this._gl, this._renderGraph, definition);
         this._processingNodes.push(transitionNode);
         return transitionNode;
     }
@@ -807,7 +807,7 @@ export default class VideoContext {
 
     private _isStalled() {
         for (let i = 0; i < this._sourceNodes.length; i++) {
-            let sourceNode = this._sourceNodes[i];
+            const sourceNode = this._sourceNodes[i];
             if (this._isSourceNodeActive(sourceNode) && !sourceNode._isReady()) {
                 return true;
             }
@@ -879,8 +879,8 @@ export default class VideoContext {
 
             if (this._state === VideoContext.STATE.PLAYING) {
                 //Handle timeline callbacks.
-                let activeCallbacks = new Map();
-                for (let callback of this._timelineCallbacks) {
+                const activeCallbacks = new Map();
+                for (const callback of this._timelineCallbacks) {
                     if (
                         callback.time >= this.currentTime &&
                         callback.time < this._currentTime + dt * this._playbackRate
@@ -893,17 +893,17 @@ export default class VideoContext {
                 }
 
                 //Sort the groups of callbacks by the times of the groups
-                let timeIntervals = Array.from(activeCallbacks.keys());
+                const timeIntervals = Array.from(activeCallbacks.keys());
                 timeIntervals.sort(function (a, b) {
                     return a - b;
                 });
 
-                for (let t of timeIntervals) {
-                    let callbacks = activeCallbacks.get(t);
+                for (const t of timeIntervals) {
+                    const callbacks = activeCallbacks.get(t);
                     callbacks.sort(function (a, b) {
                         return a.ordering - b.ordering;
                     });
-                    for (let callback of callbacks) {
+                    for (const callback of callbacks) {
                         callback.func();
                     }
                 }
@@ -925,7 +925,7 @@ export default class VideoContext {
             let sourcesPlaying = false;
 
             for (let i = 0; i < this._sourceNodes.length; i++) {
-                let sourceNode = this._sourceNodes[i];
+                const sourceNode = this._sourceNodes[i];
 
                 if (this._state === VideoContext.STATE.STALLED) {
                     if (sourceNode._isReady() && sourceNode._state === SOURCENODESTATE.playing)
@@ -970,15 +970,15 @@ export default class VideoContext {
              * TL;DR Future matt - refactor this.
              *
              */
-            let sortedNodes = [];
-            let connections = this._renderGraph.connections.slice();
-            let nodes = RenderGraph.getInputlessNodes(connections);
+            const sortedNodes = [];
+            const connections = this._renderGraph.connections.slice();
+            const nodes = RenderGraph.getInputlessNodes(connections);
 
             while (nodes.length > 0) {
-                let node = nodes.pop();
+                const node = nodes.pop();
                 sortedNodes.push(node);
-                for (let edge of RenderGraph.outputEdgesFor(node, connections)) {
-                    let index = connections.indexOf(edge);
+                for (const edge of RenderGraph.outputEdgesFor(node, connections)) {
+                    const index = connections.indexOf(edge);
                     if (index > -1) connections.splice(index, 1);
                     if (RenderGraph.inputEdgesFor(edge.destination, connections).length === 0) {
                         nodes.push(edge.destination);
@@ -986,7 +986,7 @@ export default class VideoContext {
                 }
             }
 
-            for (let node of sortedNodes) {
+            for (const node of sortedNodes) {
                 if (this._sourceNodes.indexOf(node) === -1) {
                     node._update(this._currentTime);
                     node._render();
@@ -1001,10 +1001,10 @@ export default class VideoContext {
      * and should not be reused — create new nodes after calling reset().
      */
     reset() {
-        for (let node of this._sourceNodes) {
+        for (const node of this._sourceNodes) {
             node.destroy();
         }
-        for (let node of this._processingNodes) {
+        for (const node of this._processingNodes) {
             node.destroy();
         }
         this._update(0);

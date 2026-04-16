@@ -14,7 +14,12 @@ class GraphNode {
     /**
      * Base class from which all processing and source nodes are derrived.
      */
-    constructor(gl: WebGLRenderingContext | null, renderGraph: any, inputNames: string[], limitConnections = false) {
+    constructor(
+        gl: WebGLRenderingContext | null,
+        renderGraph: any,
+        inputNames: string[],
+        limitConnections = false
+    ) {
         this._renderGraph = renderGraph;
         this._limitConnections = limitConnections;
         this._inputNames = inputNames;
@@ -107,7 +112,7 @@ class GraphNode {
      */
     disconnect(targetNode?: any) {
         if (targetNode === undefined) {
-            let toRemove = this._renderGraph.getOutputsForNode(this);
+            const toRemove = this._renderGraph.getOutputsForNode(this);
             toRemove.forEach((target) => this._renderGraph.unregisterConnection(this, target));
             if (toRemove.length > 0) return true;
             return false;
@@ -120,7 +125,7 @@ class GraphNode {
      */
     destroy() {
         this.disconnect();
-        for (let input of this.inputs) {
+        for (const input of this.inputs) {
             input.disconnect(this);
         }
         this._destroyed = true;

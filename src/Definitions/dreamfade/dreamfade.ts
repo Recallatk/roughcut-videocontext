@@ -1,7 +1,7 @@
 import vertexShader from "./dreamfade.vert";
 import fragmentShader from "./dreamfade.frag";
 
-let dreamfade = {
+const dreamfade = {
     title: "Dream-Fade",
     description: "A wobbly dream effect. Typically used as a transistion.",
     vertexShader,

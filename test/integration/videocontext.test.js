@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import VideoContext from "../../src/videocontext";
 
 let videocontext;
-require("webgl-mock");
+import "webgl-mock";
 
 function createStubSourceNode(config) {
     return {

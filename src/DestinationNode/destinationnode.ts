@@ -14,7 +14,7 @@ class DestinationNode extends ProcessingNode {
      * You should not instantiate this directly.
      */
     constructor(gl, renderGraph) {
-        let definition = {
+        const definition = {
             fragmentShader,
             vertexShader,
             properties: {},
@@ -26,7 +26,7 @@ class DestinationNode extends ProcessingNode {
     }
 
     _render() {
-        let gl = this._gl;
+        const gl = this._gl;
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -37,9 +37,9 @@ class DestinationNode extends ProcessingNode {
         this.inputs.forEach((node) => {
             super._render();
             //map the input textures input the node
-            var texture = node._texture;
+            const texture = node._texture;
 
-            for (let mapping of this._shaderInputsTextureUnitMapping) {
+            for (const mapping of this._shaderInputsTextureUnitMapping) {
                 gl.activeTexture(mapping.textureUnit);
                 gl.uniform1i(mapping.location, mapping.textureUnitIndex);
                 gl.bindTexture(gl.TEXTURE_2D, texture);

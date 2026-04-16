@@ -19,10 +19,10 @@ import { COMPOSITINGTYPE } from "./ProcessingNodes/compositingnode.js";
  *
  */
 export function compileShader(gl, shaderSource, shaderType) {
-    let shader = gl.createShader(shaderType);
+    const shader = gl.createShader(shaderType);
     gl.shaderSource(shader, shaderSource);
     gl.compileShader(shader);
-    let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!success) {
         throw "could not compile shader:" + gl.getShaderInfoLog(shader);
     }
@@ -39,7 +39,7 @@ export function compileShader(gl, shaderSource, shaderType) {
  * @return {WebGLProgram} A compiled & linkde shader program.
  */
 export function createShaderProgram(gl, vertexShader, fragmentShader) {
-    let program = gl.createProgram();
+    const program = gl.createProgram();
 
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -58,7 +58,7 @@ export function createShaderProgram(gl, vertexShader, fragmentShader) {
 }
 
 export function createElementTexture(gl) {
-    let texture = gl.createTexture();
+    const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     // Set the parameters so we can render any size image.
@@ -265,22 +265,22 @@ function snapshotVideoContext(vc) {
 let warningExportSourceLogged = false;
 function snapshotNodes(vc) {
     function qualifyURL(url) {
-        var a = document.createElement("a");
+        const a = document.createElement("a");
         a.href = url;
         return a.href;
     }
 
     function getInputIDs(node, vc) {
-        let inputs = [];
-        for (let input of node.inputs) {
+        const inputs = [];
+        for (const input of node.inputs) {
             if (input === undefined) continue;
             let inputID;
-            let inputIndex = node.inputs.indexOf(input);
-            let index = vc._processingNodes.indexOf(input);
+            const inputIndex = node.inputs.indexOf(input);
+            const index = vc._processingNodes.indexOf(input);
             if (index > -1) {
                 inputID = "processor" + index;
             } else {
-                let index = vc._sourceNodes.indexOf(input);
+                const index = vc._sourceNodes.indexOf(input);
                 if (index > -1) {
                     inputID = "source" + index;
                 } else {
@@ -292,16 +292,16 @@ function snapshotNodes(vc) {
         return inputs;
     }
 
-    let result = {};
+    const result = {};
 
-    let sourceNodeStateMapping = [];
-    for (let state in SOURCENODESTATE) {
+    const sourceNodeStateMapping = [];
+    for (const state in SOURCENODESTATE) {
         sourceNodeStateMapping[SOURCENODESTATE[state]] = state;
     }
 
-    for (let index in vc._sourceNodes) {
-        let source = vc._sourceNodes[index];
-        let id = "source" + index;
+    for (const index in vc._sourceNodes) {
+        const source = vc._sourceNodes[index];
+        const id = "source" + index;
         let node_url;
 
         if (!source._isResponsibleForElementLifeCycle) {
@@ -317,7 +317,7 @@ function snapshotNodes(vc) {
             node_url = qualifyURL(source._elementURL);
         }
 
-        let node = {
+        const node = {
             type: source.displayName,
             url: node_url,
             start: source.startTime,
@@ -337,17 +337,17 @@ function snapshotNodes(vc) {
         result[id] = node;
     }
 
-    for (let index in vc._processingNodes) {
-        let processor = vc._processingNodes[index];
-        let id = "processor" + index;
-        let node = {
+    for (const index in vc._processingNodes) {
+        const processor = vc._processingNodes[index];
+        const id = "processor" + index;
+        const node = {
             type: processor.displayName,
             definition: processor._definition,
             inputs: getInputIDs(processor, vc),
             properties: {}
         };
 
-        for (let property in node.definition.properties) {
+        for (const property in node.definition.properties) {
             node.properties[property] = processor[property];
         }
 
@@ -367,30 +367,30 @@ function snapshotNodes(vc) {
 }
 
 export function createControlFormForNode(node, nodeName) {
-    let rootDiv = document.createElement("div");
+    const rootDiv = document.createElement("div");
 
     if (nodeName !== undefined) {
-        var title = document.createElement("h2");
+        const title = document.createElement("h2");
         title.innerHTML = nodeName;
         rootDiv.appendChild(title);
     }
 
-    for (let propertyName in node._properties) {
-        let propertyParagraph = document.createElement("p");
-        let propertyTitleHeader = document.createElement("h3");
+    for (const propertyName in node._properties) {
+        const propertyParagraph = document.createElement("p");
+        const propertyTitleHeader = document.createElement("h3");
         propertyTitleHeader.innerHTML = propertyName;
         propertyParagraph.appendChild(propertyTitleHeader);
 
-        let propertyValue = node._properties[propertyName].value;
+        const propertyValue = node._properties[propertyName].value;
         if (typeof propertyValue === "number") {
-            let range = document.createElement("input");
+            const range = document.createElement("input");
             range.setAttribute("type", "range");
             range.setAttribute("min", "0");
             range.setAttribute("max", "1");
             range.setAttribute("step", "0.01");
             range.setAttribute("value", String(propertyValue));
 
-            let number = document.createElement("input");
+            const number = document.createElement("input");
             number.setAttribute("type", "number");
             number.setAttribute("min", "0");
             number.setAttribute("max", "1");
@@ -421,22 +421,22 @@ export function createControlFormForNode(node, nodeName) {
             propertyParagraph.appendChild(range);
             propertyParagraph.appendChild(number);
         } else if (Object.prototype.toString.call(propertyValue) === "[object Array]") {
-            for (var i = 0; i < propertyValue.length; i++) {
-                let range = document.createElement("input");
+            for (let i = 0; i < propertyValue.length; i++) {
+                const range = document.createElement("input");
                 range.setAttribute("type", "range");
                 range.setAttribute("min", "0");
                 range.setAttribute("max", "1");
                 range.setAttribute("step", "0.01");
                 range.setAttribute("value", String(propertyValue[i]));
 
-                let number = document.createElement("input");
+                const number = document.createElement("input");
                 number.setAttribute("type", "number");
                 number.setAttribute("min", "0");
                 number.setAttribute("max", "1");
                 number.setAttribute("step", "0.01");
                 number.setAttribute("value", String(propertyValue));
 
-                let index = i;
+                const index = i;
                 let mouseDown = false;
                 range.onmousedown = function () {
                     mouseDown = true;
@@ -470,13 +470,13 @@ export function createControlFormForNode(node, nodeName) {
 }
 
 function calculateNodeDepthFromDestination(videoContext) {
-    let destination = videoContext.destination;
-    let depthMap = new Map();
+    const destination = videoContext.destination;
+    const depthMap = new Map();
     depthMap.set(destination, 0);
 
     function itterateBackwards(node, depth = 0) {
-        for (let n of node.inputs) {
-            let d = depth + 1;
+        for (const n of node.inputs) {
+            const d = depth + 1;
             if (depthMap.has(n)) {
                 if (d > depthMap.get(n)) {
                     depthMap.set(n, d);
@@ -493,28 +493,28 @@ function calculateNodeDepthFromDestination(videoContext) {
 }
 
 export function visualiseVideoContextGraph(videoContext, canvas) {
-    let ctx = canvas.getContext("2d");
-    let w = canvas.width;
-    let h = canvas.height;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    let nodeDepths = calculateNodeDepthFromDestination(videoContext);
-    let depths: any[] = Array.from(nodeDepths.values()).sort(function (a: number, b: number) {
+    const nodeDepths = calculateNodeDepthFromDestination(videoContext);
+    const depths: any[] = Array.from(nodeDepths.values()).sort(function (a: number, b: number) {
         return b - a;
     });
-    let maxDepth = depths[0];
+    const maxDepth = depths[0];
 
-    let xStep = w / (maxDepth + 1);
+    const xStep = w / (maxDepth + 1);
 
-    let nodeHeight = h / videoContext._sourceNodes.length / 3;
-    let nodeWidth = nodeHeight * 1.618;
+    const nodeHeight = h / videoContext._sourceNodes.length / 3;
+    const nodeWidth = nodeHeight * 1.618;
 
     function calculateNodePos(node, nodeDepths, xStep, nodeHeight) {
-        let depth = nodeDepths.get(node);
+        const depth = nodeDepths.get(node);
         nodeDepths.values();
 
         let count = 0;
-        for (let nodeDepth of nodeDepths) {
+        for (const nodeDepth of nodeDepths) {
             if (nodeDepth[0] === node) break;
             if (nodeDepth[1] === depth) count += 1;
         }
@@ -529,28 +529,28 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
     // "canvas":["#AA9639", "#806D15"]
 
     for (let i = 0; i < videoContext._renderGraph.connections.length; i++) {
-        let conn = videoContext._renderGraph.connections[i];
-        let source = calculateNodePos(conn.source, nodeDepths, xStep, nodeHeight);
-        let destination = calculateNodePos(conn.destination, nodeDepths, xStep, nodeHeight);
+        const conn = videoContext._renderGraph.connections[i];
+        const source = calculateNodePos(conn.source, nodeDepths, xStep, nodeHeight);
+        const destination = calculateNodePos(conn.destination, nodeDepths, xStep, nodeHeight);
         if (source !== undefined && destination !== undefined) {
             ctx.beginPath();
             //ctx.moveTo(source.x + nodeWidth/2, source.y + nodeHeight/2);
-            let x1 = source.x + nodeWidth / 2;
-            let y1 = source.y + nodeHeight / 2;
-            let x2 = destination.x + nodeWidth / 2;
-            let y2 = destination.y + nodeHeight / 2;
-            let dx = x2 - x1;
-            let dy = y2 - y1;
+            const x1 = source.x + nodeWidth / 2;
+            const y1 = source.y + nodeHeight / 2;
+            const x2 = destination.x + nodeWidth / 2;
+            const y2 = destination.y + nodeHeight / 2;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
 
-            let angle = Math.PI / 2 - Math.atan2(dx, dy);
+            const angle = Math.PI / 2 - Math.atan2(dx, dy);
 
-            let distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+            const distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 
-            let midX = Math.min(x1, x2) + (Math.max(x1, x2) - Math.min(x1, x2)) / 2;
-            let midY = Math.min(y1, y2) + (Math.max(y1, y2) - Math.min(y1, y2)) / 2;
+            const midX = Math.min(x1, x2) + (Math.max(x1, x2) - Math.min(x1, x2)) / 2;
+            const midY = Math.min(y1, y2) + (Math.max(y1, y2) - Math.min(y1, y2)) / 2;
 
-            let testX = (Math.cos(angle + Math.PI / 2) * distance) / 1.5 + midX;
-            let testY = (Math.sin(angle + Math.PI / 2) * distance) / 1.5 + midY;
+            const testX = (Math.cos(angle + Math.PI / 2) * distance) / 1.5 + midX;
+            const testY = (Math.sin(angle + Math.PI / 2) * distance) / 1.5 + midY;
             // console.log(testX, testY);
 
             ctx.arc(testX, testY, distance / 1.2, angle - Math.PI + 0.95, angle - 0.95);
@@ -562,8 +562,8 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
         }
     }
 
-    for (let node of nodeDepths.keys()) {
-        let pos = calculateNodePos(node, nodeDepths, xStep, nodeHeight);
+    for (const node of nodeDepths.keys()) {
+        const pos = calculateNodePos(node, nodeDepths, xStep, nodeHeight);
         let color = "#AA9639";
         let text = "";
         if (node.displayName === COMPOSITINGTYPE) {
@@ -603,15 +603,15 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
 export function createSigmaGraphDataFromRenderGraph(videoContext) {
     function idForNode(node) {
         if (videoContext._sourceNodes.indexOf(node) !== -1) {
-            let id = "source " + node.displayName + " " + videoContext._sourceNodes.indexOf(node);
+            const id = "source " + node.displayName + " " + videoContext._sourceNodes.indexOf(node);
             return id;
         }
-        let id =
+        const id =
             "processor " + node.displayName + " " + videoContext._processingNodes.indexOf(node);
         return id;
     }
 
-    let graph = {
+    const graph = {
         nodes: [
             {
                 id: idForNode(videoContext.destination),
@@ -626,8 +626,8 @@ export function createSigmaGraphDataFromRenderGraph(videoContext) {
     };
 
     for (let i = 0; i < videoContext._sourceNodes.length; i++) {
-        let sourceNode = videoContext._sourceNodes[i];
-        let y = i * (1.0 / videoContext._sourceNodes.length);
+        const sourceNode = videoContext._sourceNodes[i];
+        const y = i * (1.0 / videoContext._sourceNodes.length);
         graph.nodes.push({
             id: idForNode(sourceNode),
             label: "Source " + i.toString(),
@@ -639,7 +639,7 @@ export function createSigmaGraphDataFromRenderGraph(videoContext) {
         });
     }
     for (let i = 0; i < videoContext._processingNodes.length; i++) {
-        let processingNode = videoContext._processingNodes[i];
+        const processingNode = videoContext._processingNodes[i];
         graph.nodes.push({
             id: idForNode(processingNode),
             x: Math.random() * 2.5,
@@ -650,7 +650,7 @@ export function createSigmaGraphDataFromRenderGraph(videoContext) {
     }
 
     for (let i = 0; i < videoContext._renderGraph.connections.length; i++) {
-        let conn = videoContext._renderGraph.connections[i];
+        const conn = videoContext._renderGraph.connections[i];
         graph.edges.push({
             id: "e" + i.toString(),
             source: idForNode(conn.source),
@@ -663,10 +663,10 @@ export function createSigmaGraphDataFromRenderGraph(videoContext) {
 
 export function importSimpleEDL(ctx, playlist) {
     // Create a "track" node to connect all the clips to.
-    let trackNode = ctx.compositor(DEFINITIONS.COMBINE);
+    const trackNode = ctx.compositor(DEFINITIONS.COMBINE);
 
     // Create a source node for each of the clips.
-    for (let clip of playlist) {
+    for (const clip of playlist) {
         let node;
         if (clip.type === "video") {
             node = ctx.video(clip.src, clip.sourceStart);
@@ -684,10 +684,10 @@ export function importSimpleEDL(ctx, playlist) {
 }
 
 export function visualiseVideoContextTimeline(videoContext, canvas, currentTime) {
-    let ctx = canvas.getContext("2d");
-    let w = canvas.width;
-    let h = canvas.height;
-    let trackHeight = h / videoContext._sourceNodes.length;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+    const trackHeight = h / videoContext._sourceNodes.length;
     let playlistDuration = videoContext.duration;
 
     if (currentTime > playlistDuration && !videoContext.endOnLastSourceEnd)
@@ -696,7 +696,7 @@ export function visualiseVideoContextTimeline(videoContext, canvas, currentTime)
     if (videoContext.duration === Infinity) {
         let total = 0;
         for (let i = 0; i < videoContext._sourceNodes.length; i++) {
-            let sourceNode = videoContext._sourceNodes[i];
+            const sourceNode = videoContext._sourceNodes[i];
             if (sourceNode._stopTime !== Infinity) total += sourceNode._stopTime;
         }
 
@@ -706,8 +706,8 @@ export function visualiseVideoContextTimeline(videoContext, canvas, currentTime)
             playlistDuration = videoContext.currentTime + 5;
         }
     }
-    let pixelsPerSecond = w / playlistDuration;
-    let mediaSourceStyle = {
+    const pixelsPerSecond = w / playlistDuration;
+    const mediaSourceStyle = {
         video: ["#572A72", "#3C1255"],
         image: ["#7D9F35", "#577714"],
         canvas: ["#AA9639", "#806D15"]
@@ -716,14 +716,14 @@ export function visualiseVideoContextTimeline(videoContext, canvas, currentTime)
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = "#999";
 
-    for (let node of videoContext._processingNodes) {
+    for (const node of videoContext._processingNodes) {
         if (node.displayName !== TRANSITIONTYPE) continue;
-        for (let propertyName in node._transitions) {
-            for (let transition of node._transitions[propertyName]) {
-                let tW = (transition.end - transition.start) * pixelsPerSecond;
-                let tH = h;
-                let tX = transition.start * pixelsPerSecond;
-                let tY = 0;
+        for (const propertyName in node._transitions) {
+            for (const transition of node._transitions[propertyName]) {
+                const tW = (transition.end - transition.start) * pixelsPerSecond;
+                const tH = h;
+                const tX = transition.start * pixelsPerSecond;
+                const tY = 0;
                 ctx.fillStyle = "rgba(0,0,0, 0.3)";
                 ctx.fillRect(tX, tY, tW, tH);
                 ctx.fill();
@@ -732,15 +732,15 @@ export function visualiseVideoContextTimeline(videoContext, canvas, currentTime)
     }
 
     for (let i = 0; i < videoContext._sourceNodes.length; i++) {
-        let sourceNode = videoContext._sourceNodes[i];
+        const sourceNode = videoContext._sourceNodes[i];
         let duration = sourceNode._stopTime - sourceNode._startTime;
         if (duration === Infinity) duration = videoContext.currentTime;
-        let start = sourceNode._startTime;
+        const start = sourceNode._startTime;
 
-        let msW = duration * pixelsPerSecond;
-        let msH = trackHeight;
-        let msX = start * pixelsPerSecond;
-        let msY = trackHeight * i;
+        const msW = duration * pixelsPerSecond;
+        const msH = trackHeight;
+        const msX = start * pixelsPerSecond;
+        const msY = trackHeight * i;
         ctx.fillStyle = mediaSourceStyle.video[i % mediaSourceStyle.video.length];
 
         ctx.fillRect(msX, msY, msW, msH);
@@ -790,12 +790,12 @@ export class UpdateablesManager {
 
     _initWebWorker() {
         window.URL = window.URL || window.webkitURL;
-        let blob = new Blob([this._webWorkerString], {
+        const blob = new Blob([this._webWorkerString], {
             type: "application/javascript"
         });
         this._webWorker = new Worker(URL.createObjectURL(blob));
         this._webWorker.onmessage = (msg) => {
-            let time = msg.data;
+            const time = msg.data;
             this._updateWorkerTime(time);
         };
     }
@@ -842,14 +842,14 @@ export class UpdateablesManager {
     }
 
     _updateWorkerTime(time) {
-        let dt = (time - this._previousWorkerTime) / 1000;
+        const dt = (time - this._previousWorkerTime) / 1000;
         if (dt !== 0) this._update(dt);
         this._previousWorkerTime = time;
     }
 
     _updateRAFTime(time) {
         if (this._previousRAFTime === undefined) this._previousRAFTime = time;
-        let dt = (time - this._previousRAFTime) / 1000;
+        const dt = (time - this._previousRAFTime) / 1000;
         if (dt !== 0) this._update(dt);
         this._previousRAFTime = time;
         if (!this._useWebworker) requestAnimationFrame(this._updateRAFTime.bind(this));
@@ -870,7 +870,7 @@ export class UpdateablesManager {
     }
 
     unregister(updateable) {
-        let index = this._updateables.indexOf(updateable);
+        const index = this._updateables.indexOf(updateable);
         if (index !== -1) this._updateables.splice(index, 1);
     }
 }

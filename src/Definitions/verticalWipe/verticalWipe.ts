@@ -1,7 +1,7 @@
 import vertexShader from "./verticalWipe.vert";
 import fragmentShader from "./verticalWipe.frag";
 
-let verticalWipe = {
+const verticalWipe = {
     title: "vertical Wipe",
     description: "A vertical wipe effect. Typically used as a transistion.",
     vertexShader,

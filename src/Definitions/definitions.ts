@@ -20,7 +20,7 @@ import dreamfade from "./dreamfade";
 import opacity from "./opacity";
 import crop from "./crop";
 
-let DEFINITIONS = {
+const DEFINITIONS = {
     AAF_VIDEO_SCALE: aaf_video_scale,
     CROSSFADE: crossfade,
     DREAMFADE: dreamfade,

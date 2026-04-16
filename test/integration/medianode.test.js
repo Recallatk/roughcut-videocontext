@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import VideoContext from "../../src/videocontext";
 
 let ctx;
-require("webgl-mock");
+import "webgl-mock";
 
 /*
  * creates a video node with provided attributes.
