@@ -152,7 +152,7 @@ describe("medianode", () => {
             const notAllowed = Object.assign(new Error("not allowed"), {
                 name: "NotAllowedError"
             });
-            const { node, element } = nodeFactory(ctx);
+            const { element } = nodeFactory(ctx);
             element.play = vi.fn().mockRejectedValue(notAllowed);
             element.readyState = 4;
 

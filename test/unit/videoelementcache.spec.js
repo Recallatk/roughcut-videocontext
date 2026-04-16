@@ -18,7 +18,7 @@
  * - length getter reflects cache size
  */
 import "../../src/utils.js"; // bootstraps circular module graph
-import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, test, expect } from "vitest";
 import "webgl-mock";
 import VideoElementCacheItem from "../../src/videoelementcacheitem.js";
 import VideoElementCache from "../../src/videoelementcache.js";
