@@ -8,6 +8,29 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
+### 0.54.0-roughcut.7.0 (2026-04-16)
+
+#### Phase 7 — Cache init and MediaNode play() error hardening
+
+**`VideoElementCache.init()`**
+- Removed play()-on-sourceless-elements warming loop. `play()` always rejects immediately (`NotSupportedError` / `AbortError`) for elements with no `src`, so the intended gesture-unlock never occurred.
+- Actual autoplay unlocking happens naturally: `MediaNode._update()` calls `play()` on a real-source element during the user's `ctx.play()` gesture — which is how browsers grant autoplay permission.
+- `init()` is now an idempotent marker: sets `_cacheItemsInitialised = true` and returns immediately on repeat calls. No async side-effects.
+
+**`MediaNode._update()` play() error handling**
+- Previously only `AbortError` reset `_isElementPlaying`; all other rejections (`NotAllowedError`, `NotSupportedError`, network errors) left the flag stuck `true`, producing a silently frozen node with an unhandled Promise rejection.
+- Now always resets `_isElementPlaying` in `.catch()`.
+- `AbortError` → silent retry next update tick.
+- All other errors → enter `SOURCENODESTATE.error`, set `_ready = true`, fire `"error"` callback. No throws inside `.catch()`.
+- `stretchPaused` resume setter: same pattern — reset flag and log instead of throwing into an unhandled rejection.
+
+**Tests**
+- Updated `test/unit/videoelementcache.spec.js`: replaced play()-call assertions with tests verifying `init()` does NOT call `play()`.
+- Added three integration tests in `test/integration/medianode.test.js`: `AbortError` retry, non-`AbortError` error state + callback, and no retry after permanent error.
+- 186 tests passing (was 185)
+
+---
+
 ### 0.54.0-roughcut.6.3 (2026-04-16)
 
 #### Phase 6d — Unit tests: VideoElementCache + VideoElementCacheItem

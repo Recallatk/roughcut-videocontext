@@ -406,10 +406,10 @@ var e = {
 		for (let n of this._callbacks) n.type === e && (t === void 0 ? n.func(this) : n.func(this, t));
 	}
 	start(e) {
-		return this._state === r.waiting ? (this._startTime = this._currentTime + e, this._state = r.sequenced, !0) : (console.debug("SourceNode is has already been sequenced. Can't sequence twice."), !1);
+		return this._state === r.waiting ? (this._startTime = this._currentTime + e, this._state = r.sequenced, !0) : !1;
 	}
 	startAt(e) {
-		return this._state === r.waiting ? (this._startTime = e, this._state = r.sequenced, !0) : (console.debug("SourceNode is has already been sequenced. Can't sequence twice."), !1);
+		return this._state === r.waiting ? (this._startTime = e, this._state = r.sequenced, !0) : !1;
 	}
 	get startTime() {
 		return this._startTime;
@@ -447,7 +447,7 @@ var e = {
 		this._startTime = NaN, this._stopTime = Infinity, this._state = r.waiting;
 	}
 	destroy() {
-		this._unload(), super.destroy(), this.unregisterCallback(), delete this._element, this._elementURL = void 0, this._state = r.waiting, this._currentTime = 0, this._startTime = NaN, this._stopTime = Infinity, this._ready = !1, this._loadCalled = !1, this._gl.deleteTexture(this._texture), this._texture = void 0;
+		this._unload(), super.destroy(), this.unregisterCallback(), delete this._element, this._elementURL = void 0, this._state = r.waiting, this._currentTime = 0, this._startTime = NaN, this._stopTime = Infinity, this._ready = !1, this._loadCalled = !1, this._gl?.deleteTexture(this._texture), this._texture = null;
 	}
 }, o = class extends a {
 	constructor(e, t, n, r, i = 1, a = 0, o = 4, s = void 0, c = {}) {
@@ -458,7 +458,7 @@ var e = {
 	}
 	set stretchPaused(e) {
 		super.stretchPaused = e, this._element && (this._stretchPaused ? this._element.pause() : this._state === r.playing && this._element.play().catch((e) => {
-			if (e.name !== "AbortError") throw e;
+			e.name !== "AbortError" && (console.debug("MediaNode stretchPaused resume failed:", e), this._isElementPlaying = !1);
 		}));
 	}
 	get stretchPaused() {
@@ -499,19 +499,15 @@ var e = {
 	}
 	_seek(e) {
 		if (super._seek(e), this.state === r.playing || this.state === r.paused) {
-			this._element === void 0 && this._load();
 			let e = this._currentTime - this._startTime + this._sourceOffset;
 			this._element.currentTime = e, this._ready = !1;
 		}
 		(this._state === r.sequenced || this._state === r.ended) && this._element !== void 0 && this._unload();
 	}
 	_update(e, t = !0) {
-		if (super._update(e, t), this._element !== void 0 && this._element.ended && (this._state = r.ended, this._triggerCallbacks("ended")), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing) return this._playbackRateUpdated &&= (this._element.playbackRate = this._globalPlaybackRate * this._playbackRate, !1), this._isElementPlaying || (this._isElementPlaying = !0, this._element.play().catch((e) => {
-			if (e.name === "AbortError") this._isElementPlaying = !1;
-			else throw e;
-		}), this._stretchPaused && this._element.pause()), !0;
-		if (this._state === r.paused) return this._element.pause(), this._isElementPlaying = !1, !0;
-		if (this._state === r.ended && this._element !== void 0) return this._element.pause(), this._isElementPlaying && this._unload(), !1;
+		return super._update(e, t), this._element !== void 0 && this._element.ended && (this._state = r.ended, this._triggerCallbacks("ended")), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing ? (this._playbackRateUpdated &&= (this._element.playbackRate = this._globalPlaybackRate * this._playbackRate, !1), this._isElementPlaying || (this._isElementPlaying = !0, this._element.play().catch((e) => {
+			this._isElementPlaying = !1, e.name !== "AbortError" && (console.debug("MediaNode play() failed:", e), this._state = r.error, this._ready = !0, this._triggerCallbacks("error"));
+		}), this._stretchPaused && this._element.pause()), !0) : this._state === r.paused ? (this._element.pause(), this._isElementPlaying = !1, !0) : this._state === r.ended && this._element !== void 0 ? (this._element.pause(), this._isElementPlaying && this._unload(), !1) : !1;
 	}
 	clearTimelineState() {
 		super.clearTimelineState(), this._element !== void 0 && (this._element.pause(), this._isElementPlaying = !1), this._unload();
@@ -536,9 +532,8 @@ var e = {
 	_seek(e) {
 		super._seek(e), (this.state === r.playing || this.state === r.paused) && (this._element === void 0 && this._load(), this._ready = !1), (this._state === r.sequenced || this._state === r.ended) && this._element !== void 0 && this._unload();
 	}
-	_update(e) {
-		if (super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused) return !0;
-		if (this._state === r.ended && this._element !== void 0) return this._unload(), !1;
+	_update(e, t = !0) {
+		return super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused ? !0 : (this._state === r.ended && this._element !== void 0 && this._unload(), !1);
 	}
 }, d = "CanvasNode", f = class extends a {
 	constructor(e, t, n, r, i = 4, a = {}) {
@@ -549,7 +544,7 @@ var e = {
 	}
 	_load() {
 		if (this._image !== void 0) {
-			for (var e in this._attributes) this._image[e] = this._attributes[e];
+			for (let e in this._attributes) this._image[e] = this._attributes[e];
 			return;
 		}
 		if (this._isResponsibleForElementLifeCycle) {
@@ -567,14 +562,13 @@ var e = {
 		};
 	}
 	_unload() {
-		super._unload(), this._isResponsibleForElementLifeCycle && (this._image !== void 0 && (this._image.src = "", this._image.onerror = void 0, this._image = void 0, delete this._image), this._element instanceof window.ImageBitmap && this._element.close()), this._ready = !1;
+		super._unload(), this._isResponsibleForElementLifeCycle && (this._image !== void 0 && (this._image.src = "", this._image.onerror = null, this._image = void 0, delete this._image), window.ImageBitmap && this._element instanceof window.ImageBitmap && this._element.close()), this._ready = !1;
 	}
 	_seek(e) {
 		super._seek(e), (this.state === r.playing || this.state === r.paused) && this._image === void 0 && this._load(), (this._state === r.sequenced || this._state === r.ended) && this._element !== void 0 && this._unload();
 	}
-	_update(e) {
-		if (this._textureUploaded ? super._update(e, !1) : super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused) return !0;
-		if (this._state === r.ended && this._image !== void 0) return this._unload(), !1;
+	_update(e, t = !0) {
+		return this._textureUploaded ? super._update(e, !1) : super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused ? !0 : (this._state === r.ended && this._image !== void 0 && this._unload(), !1);
 	}
 }, p = class extends Error {
 	constructor(e) {
@@ -640,8 +634,9 @@ var e = {
 	}
 	destroy() {
 		super.destroy();
-		for (let e in this._properties) this._properties[e].value instanceof Image && (this._gl.deleteTexture(this._properties[e].texture), this._texture = void 0);
-		this._gl.deleteTexture(this._texture), this._texture = void 0, this._gl.detachShader(this._program, this._vertexShader), this._gl.detachShader(this._program, this._fragmentShader), this._gl.deleteShader(this._vertexShader), this._gl.deleteShader(this._fragmentShader), this._gl.deleteProgram(this._program), this._gl.deleteFramebuffer(this._framebuffer);
+		let e = this._gl;
+		for (let t in this._properties) this._properties[t].value instanceof Image && (e.deleteTexture(this._properties[t].texture), this._texture = null);
+		e.deleteTexture(this._texture), this._texture = null, e.detachShader(this._program, this._vertexShader), e.detachShader(this._program, this._fragmentShader), e.deleteShader(this._vertexShader), e.deleteShader(this._fragmentShader), e.deleteProgram(this._program), e.deleteFramebuffer(this._framebuffer);
 	}
 	_update(e) {
 		this._currentTime = e;
@@ -679,7 +674,7 @@ var e = {
 		let e = this._gl;
 		e.bindFramebuffer(e.FRAMEBUFFER, null), e.blendFunc(e.SRC_ALPHA, e.ONE_MINUS_SRC_ALPHA), e.enable(e.BLEND), e.clearColor(0, 0, 0, 0), e.clear(e.COLOR_BUFFER_BIT), this.inputs.forEach((t) => {
 			super._render();
-			var n = t._texture;
+			let n = t._texture;
 			for (let t of this._shaderInputsTextureUnitMapping) e.activeTexture(t.textureUnit), e.uniform1i(t.location, t.textureUnitIndex), e.bindTexture(e.TEXTURE_2D, n);
 			e.drawArrays(e.TRIANGLES, 0, 6);
 		});
@@ -698,7 +693,7 @@ var e = {
 		let e = this._gl;
 		e.bindFramebuffer(e.FRAMEBUFFER, this._framebuffer), e.framebufferTexture2D(e.FRAMEBUFFER, e.COLOR_ATTACHMENT0, e.TEXTURE_2D, this._texture, 0), e.clearColor(0, 0, 0, 0), e.clear(e.COLOR_BUFFER_BIT), e.blendFunc(e.ONE, e.ZERO), super._render();
 		let t = this._renderGraph.getInputsForNode(this);
-		for (var n = 0; n < this._shaderInputsTextureUnitMapping.length; n++) {
+		for (let n = 0; n < this._shaderInputsTextureUnitMapping.length; n++) {
 			let r = this._placeholderTexture, i = this._shaderInputsTextureUnitMapping[n].textureUnit;
 			n < t.length && t[n] !== void 0 && (r = t[n]._texture), e.activeTexture(i), e.uniform1i(this._shaderInputsTextureUnitMapping[n].location, this._shaderInputsTextureUnitMapping[n].textureUnitIndex), e.bindTexture(e.TEXTURE_2D, r);
 		}
@@ -745,7 +740,7 @@ var e = {
 	}
 	clearTransition(e, t) {
 		let n;
-		for (var r = 0; r < this._transitions[e].length; r++) {
+		for (let r = 0; r < this._transitions[e].length; r++) {
 			let i = this._transitions[e][r];
 			t > i.start && t < i.end && (n = r);
 		}
@@ -753,23 +748,23 @@ var e = {
 	}
 	_update(e) {
 		super._update(e);
-		for (let n in this._transitions) {
-			let r = this[n];
-			this._transitions[n].length > 0 && (r = this._transitions[n][0].current);
-			let i = !1;
-			for (var t = 0; t < this._transitions[n].length; t++) {
-				let a = this._transitions[n][t];
+		for (let t in this._transitions) {
+			let n = this[t];
+			this._transitions[t].length > 0 && (n = this._transitions[t][0].current);
+			let r = !1;
+			for (let i = 0; i < this._transitions[t].length; i++) {
+				let a = this._transitions[t][i];
 				if (e > a.end) {
-					r = a.target;
+					n = a.target;
 					continue;
 				}
 				if (e > a.start && e < a.end) {
-					let e = a.target - a.current, t = (this._currentTime - a.start) / (a.end - a.start);
-					i = !0, this[n] = a.current + e * t;
+					let e = a.target - a.current, n = (this._currentTime - a.start) / (a.end - a.start);
+					r = !0, this[t] = a.current + e * n;
 					break;
 				}
 			}
-			i || (this[n] = r);
+			r || (this[t] = n);
 		}
 	}
 }, T = "CompositingNode", E = class extends g {
@@ -785,12 +780,11 @@ var e = {
 	_render() {
 		let e = this._gl;
 		e.bindFramebuffer(e.FRAMEBUFFER, this._framebuffer), e.framebufferTexture2D(e.FRAMEBUFFER, e.COLOR_ATTACHMENT0, e.TEXTURE_2D, this._texture, 0), e.clearColor(0, 0, 0, 0), e.clear(e.COLOR_BUFFER_BIT), e.blendFuncSeparate(e.SRC_ALPHA, e.ONE_MINUS_SRC_ALPHA, e.ONE, e.ONE_MINUS_SRC_ALPHA), this.inputs.forEach((t) => {
-			if (t !== void 0) {
-				super._render();
-				var n = t._texture;
-				for (let t of this._shaderInputsTextureUnitMapping) e.activeTexture(t.textureUnit), e.uniform1i(t.location, t.textureUnitIndex), e.bindTexture(e.TEXTURE_2D, n);
-				e.drawArrays(e.TRIANGLES, 0, 6);
-			}
+			if (t === void 0) return;
+			super._render();
+			let n = t._texture;
+			for (let t of this._shaderInputsTextureUnitMapping) e.activeTexture(t.textureUnit), e.uniform1i(t.location, t.textureUnitIndex), e.bindTexture(e.TEXTURE_2D, n);
+			e.drawArrays(e.TRIANGLES, 0, 6);
 		}), e.bindFramebuffer(e.FRAMEBUFFER, null);
 	}
 };
@@ -817,15 +811,15 @@ function k(e) {
 	return e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_S, e.CLAMP_TO_EDGE), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_T, e.CLAMP_TO_EDGE), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MIN_FILTER, e.NEAREST), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MAG_FILTER, e.NEAREST), t;
 }
 function A(e, t, n) {
-	n.readyState !== void 0 && n.readyState === 0 || (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, e.RGBA, e.UNSIGNED_BYTE, n), t._isTextureCleared = !1);
+	e && (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, e.RGBA, e.UNSIGNED_BYTE, n), t._isTextureCleared = !1);
 }
 function j(e, t) {
-	t._isTextureCleared ||= (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, 1, 1, 0, e.RGBA, e.UNSIGNED_BYTE, new Uint8Array([
+	e && (t._isTextureCleared ||= (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, 1, 1, 0, e.RGBA, e.UNSIGNED_BYTE, new Uint8Array([
 		0,
 		0,
 		0,
 		0
-	])), !0);
+	])), !0));
 }
 function M() {
 	let e = /* @__PURE__ */ "adorable.alert.average.beautiful.blonde.bloody.blushing.bright.clean.clear.cloudy.colourful.concerned.crowded.curious.cute.dark.dirty.drab.distinct.dull.elegant.fancy.filthy.glamorous.gleaming.graceful.grotesque.homely.light.misty.motionless.muddy.plain.poised.quaint.scary.shiny.smoggy.sparkling.spotless.stormy.strange.ugly.unsightly.unusual".split("."), t = /* @__PURE__ */ "alive.brainy.broken.busy.careful.cautious.clever.crazy.damaged.dead.difficult.easy.fake.false.famous.forward.fragile.guilty.helpful.helpless.important.impossible.infamous.innocent.inquisitive.mad.modern.open.outgoing.outstanding.poor.powerful.puzzled.real.rich.right.robust.sane.scary.shy.sleepy.stupid.super.tame.thick.tired.wild.wrong".split("."), n = [
@@ -871,7 +865,7 @@ function P(e) {
 var F = !1;
 function I(e) {
 	function t(e) {
-		var t = document.createElement("a");
+		let t = document.createElement("a");
 		return t.href = e, t.href;
 	}
 	function n(e, t) {
@@ -964,7 +958,7 @@ var R = class {
 		}
 	}
 	_updateWorkerTime(e) {
-		let t = (e - this._previousWorkerTime) / 1e3;
+		let t = (e - (this._previousWorkerTime ?? 0)) / 1e3;
 		t !== 0 && this._update(t), this._previousWorkerTime = e;
 	}
 	_updateRAFTime(e) {
@@ -973,7 +967,7 @@ var R = class {
 		t !== 0 && this._update(t), this._previousRAFTime = e, this._useWebworker || requestAnimationFrame(this._updateRAFTime.bind(this));
 	}
 	_update(e) {
-		for (let t = 0; t < this._updateables.length; t++) this._updateables[t]._update(parseFloat(e));
+		for (let t = 0; t < this._updateables.length; t++) this._updateables[t]._update(e);
 	}
 	register(e) {
 		this._updateables.push(e), this._active === !1 && (this._active = !0, this._init());
@@ -1130,14 +1124,7 @@ var B = "AudioNode", V = class extends o {
 		for (let t = 0; t < e; t++) this._cacheItems.push(new W());
 	}
 	init() {
-		if (!this._cacheItemsInitialised) for (let e of this._cacheItems) try {
-			e.element.play().then(() => {
-				e.isPlaying() || e.element.pause();
-			}, (e) => {
-				if (e.name !== "NotSupportedError" && e.name !== "AbortError") throw e;
-			});
-		} catch {}
-		this._cacheItemsInitialised = !0;
+		this._cacheItemsInitialised ||= !0;
 	}
 	getElementAndLinkToNode(e) {
 		for (let t of this._cacheItems) if (!z(t.element)) return t.linkNode(e), t.element;
@@ -1162,7 +1149,7 @@ var B = "AudioNode", V = class extends o {
 			console.error("Failed to intialise WebGL."), n && n();
 			return;
 		}
-		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new G(o)), this._canvas.id && typeof this._canvas.id == "string" && (this._id = e.id), this._id === void 0 && (this._id = M()), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new U(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || K.register(this);
+		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new G(o)), this._id = this._canvas.id && typeof this._canvas.id == "string" ? e.id : M(), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new U(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || K.register(this);
 	}
 	get id() {
 		return this._id;
@@ -1197,7 +1184,7 @@ var B = "AudioNode", V = class extends o {
 		return !1;
 	}
 	_callCallbacks(e) {
-		let t = this._callbacks.get(e);
+		let t = this._callbacks.get(e) ?? [];
 		for (let e of t) e(this._currentTime);
 	}
 	get element() {
