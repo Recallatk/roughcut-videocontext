@@ -1,4 +1,8 @@
-# VideoContext
+# VideoContext (RoughCut fork)
+
+> This is RoughCut's internal fork of [VideoContext by BBC R&D](https://github.com/bbc/VideoContext),
+> maintained for use in RoughCut's preview player. All changes from the upstream version are
+> documented in [CHANGELOG.md](CHANGELOG.md).
 
 ![build status](https://travis-ci.org/bbc/VideoContext.svg?branch=master)
 

@@ -1,3 +1,11 @@
+# RoughCut fork changelog
+
+This fork is maintained by RoughCut, based on [VideoContext by BBC R&D](https://github.com/bbc/VideoContext)
+at upstream version `0.54.0`. All entries below `0.54.0-roughcut.*` are RoughCut additions.
+Entries at `0.54.0` and below are from the upstream project.
+
+---
+
 ### 0.54.0 (2019-11-28)
 
 ##### Other Changes
