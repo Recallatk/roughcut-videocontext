@@ -58,6 +58,7 @@ test("rapid play/pause leaves engine in PLAYING or PAUSED, never frozen", async 
 // ---------------------------------------------------------------------------
 test("STALLED callback fires once per stall entry", async ({ page }) => {
     const stalledCount = await page.evaluate(() => {
+        /* global VideoContext */
         return new Promise((resolve) => {
             let count = 0;
             window.ctx.registerCallback(VideoContext.EVENTS.STALLED, () => count++);
