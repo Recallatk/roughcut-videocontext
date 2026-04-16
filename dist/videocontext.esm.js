@@ -1150,6 +1150,10 @@ var W = class {
 	register(e) {
 		this._updateables.push(e), this._active === !1 && (this._active = !0, this._init());
 	}
+	unregister(e) {
+		let t = this._updateables.indexOf(e);
+		t !== -1 && this._updateables.splice(t, 1);
+	}
 };
 function G({ src: e, srcObject: t }) {
 	return !((e === "" || e === void 0) && t == null);
@@ -1325,12 +1329,12 @@ var K = "AudioNode", q = class extends o {
 		return e;
 	}
 }, Q = new W(), $ = class t {
-	constructor(e, n, { manualUpdate: r = !1, endOnLastSourceEnd: i = !0, useVideoElementCache: a = !0, videoElementCacheSize: o = 6, webglContextAttributes: s = {}, stallTimeout: c = 10 } = {}) {
+	constructor(e, n, { manualUpdate: r = !1, endOnLastSourceEnd: i = !0, useVideoElementCache: a = !0, videoElementCacheSize: o = 6, webglContextAttributes: s = {}, stallTimeout: c = 10, seekDebounce: l = 50 } = {}) {
 		if (this._canvas = e, this._endOnLastSourceEnd = i, this._gl = e.getContext("experimental-webgl", Object.assign({ preserveDrawingBuffer: !0 }, s, { alpha: !1 })), this._gl === null) {
 			console.error("Failed to intialise WebGL."), n && n();
 			return;
 		}
-		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new Z(o)), this._canvas.id && (typeof this._canvas.id == "string" || this._canvas.id instanceof String) && (this._id = e.id), this._id === void 0 && (this._id = M()), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new Y(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || Q.register(this);
+		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new Z(o)), this._canvas.id && (typeof this._canvas.id == "string" || this._canvas.id instanceof String) && (this._id = e.id), this._id === void 0 && (this._id = M()), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new Y(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || Q.register(this);
 	}
 	get id() {
 		return this._id;
@@ -1375,10 +1379,13 @@ var K = "AudioNode", q = class extends o {
 		return this._state;
 	}
 	set currentTime(e) {
-		e < this.duration && this._state === t.STATE.ENDED && (this._state = t.STATE.PAUSED), (typeof e == "string" || e instanceof String) && (e = parseFloat(e));
+		(typeof e == "string" || e instanceof String) && (e = parseFloat(e)), e < this.duration && this._state === t.STATE.ENDED && (this._state = t.STATE.PAUSED), this._currentTime = e, this._seekDebounce > 0 ? (this._seekDebounceTimer !== null && clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = setTimeout(() => {
+			this._seekDebounceTimer = null, this._flushSeek(this._currentTime);
+		}, this._seekDebounce)) : this._flushSeek(e);
+	}
+	_flushSeek(e) {
 		for (let t = 0; t < this._sourceNodes.length; t++) this._sourceNodes[t]._seek(e);
 		for (let t = 0; t < this._processingNodes.length; t++) this._processingNodes[t]._seek(e);
-		this._currentTime = e;
 	}
 	get currentTime() {
 		return this._currentTime;
@@ -1505,7 +1512,8 @@ var K = "AudioNode", q = class extends o {
 					for (let e of t) e.func();
 				}
 				if (this._currentTime += e * this._playbackRate, this._currentTime > this.duration && this._endOnLastSourceEnd) {
-					for (let e = 0; e < this._sourceNodes.length; e++) this._sourceNodes[e]._update(this._currentTime);
+					this._currentTime = this.duration;
+					for (let e = 0; e < this._sourceNodes.length; e++) this._sourceNodes[e]._pause(), this._sourceNodes[e]._update(this._currentTime);
 					this._state = t.STATE.ENDED, this._callCallbacks(t.EVENTS.ENDED);
 				}
 			}
@@ -1528,10 +1536,12 @@ var K = "AudioNode", q = class extends o {
 		}
 	}
 	reset() {
-		for (let e of this._callbacks) this.unregisterCallback(e);
 		for (let e of this._sourceNodes) e.destroy();
 		for (let e of this._processingNodes) e.destroy();
-		this._update(0), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._sourcesPlaying = void 0, this._stallStartTime = null, Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [];
+		this._update(0), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._sourcesPlaying = void 0, this._stallStartTime = null, this._seekDebounceTimer !== null && (clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = null), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [];
+	}
+	destroy() {
+		this.reset(), Q.unregister(this), window.__VIDEOCONTEXT_REFS__ && delete window.__VIDEOCONTEXT_REFS__[this._id];
 	}
 	_deprecate(e) {
 		console.log(e);
