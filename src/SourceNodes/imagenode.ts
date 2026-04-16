@@ -85,7 +85,7 @@ class ImageNode extends SourceNode {
                 this._image = undefined;
                 delete this._image;
             }
-            if (this._element instanceof window.ImageBitmap) {
+            if (window.ImageBitmap && this._element instanceof window.ImageBitmap) {
                 this._element.close();
             }
         }
