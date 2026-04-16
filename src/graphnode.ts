@@ -69,7 +69,7 @@ class GraphNode {
      */
     get inputs() {
         let result = this._renderGraph.getInputsForNode(this);
-        result = result.filter(function (n) {
+        result = result.filter(function (n: any) {
             return n !== undefined;
         });
         return result;
@@ -100,7 +100,7 @@ class GraphNode {
      * @param {(number| String)} [targetPort] - the port on the targetNode to connect to, this can be an index, a string identifier, or undefined (in which case the next available port will be connected to).
      *
      */
-    connect(targetNode, targetPort) {
+    connect(targetNode: any, targetPort?: any) {
         return this._renderGraph.registerConnection(this, targetNode, targetPort);
     }
 
@@ -113,7 +113,7 @@ class GraphNode {
     disconnect(targetNode?: any) {
         if (targetNode === undefined) {
             const toRemove = this._renderGraph.getOutputsForNode(this);
-            toRemove.forEach((target) => this._renderGraph.unregisterConnection(this, target));
+            toRemove.forEach((target: any) => this._renderGraph.unregisterConnection(this, target));
             if (toRemove.length > 0) return true;
             return false;
         }

@@ -32,7 +32,7 @@ class VideoElementCacheItem {
         this._element = element;
     }
 
-    linkNode(node) {
+    linkNode(node: any) {
         this._node = node;
     }
 

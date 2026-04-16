@@ -10,7 +10,7 @@ class TransitionNode extends EffectNode {
     /**
      * Initialise an instance of a TransitionNode. You should not instantiate this directly, but use VideoContest.createTransitonNode().
      */
-    constructor(gl, renderGraph, definition) {
+    constructor(gl: WebGLRenderingContext, renderGraph: any, definition: any) {
         super(gl, renderGraph, definition);
         this._transitions = {};
 
@@ -22,7 +22,7 @@ class TransitionNode extends EffectNode {
         this._displayName = TYPE;
     }
 
-    _doesTransitionFitOnTimeline(testTransition) {
+    _doesTransitionFitOnTimeline(testTransition: any) {
         if (this._transitions[testTransition.property] === undefined) return true;
         for (const transition of this._transitions[testTransition.property]) {
             if (testTransition.start > transition.start && testTransition.start < transition.end)
@@ -37,7 +37,7 @@ class TransitionNode extends EffectNode {
         return true;
     }
 
-    _insertTransitionInTimeline(transition) {
+    _insertTransitionInTimeline(transition: any) {
         if (this._transitions[transition.property] === undefined)
             this._transitions[transition.property] = [];
         this._transitions[transition.property].push(transition);
@@ -58,7 +58,13 @@ class TransitionNode extends EffectNode {
      *
      * @return {Boolean} returns True if a transition is successfully added, false otherwise.
      */
-    transition(startTime, endTime, currentValue, targetValue, propertyName = "mix") {
+    transition(
+        startTime: number,
+        endTime: number,
+        currentValue: any,
+        targetValue: any,
+        propertyName = "mix"
+    ) {
         const transition = {
             start: startTime + this._currentTime,
             end: endTime + this._currentTime,
@@ -82,7 +88,13 @@ class TransitionNode extends EffectNode {
      *
      * @return {Boolean} returns True if a transition is successfully added, false otherwise.
      */
-    transitionAt(startTime, endTime, currentValue, targetValue, propertyName = "mix") {
+    transitionAt(
+        startTime: number,
+        endTime: number,
+        currentValue: any,
+        targetValue: any,
+        propertyName = "mix"
+    ) {
         const transition = {
             start: startTime,
             end: endTime,
@@ -100,7 +112,7 @@ class TransitionNode extends EffectNode {
      *
      * @param {String} propertyName - The name of the property to clear transitions on, if undefined clear all transitions on the node.
      */
-    clearTransitions(propertyName) {
+    clearTransitions(propertyName: string) {
         if (propertyName === undefined) {
             this._transitions = {};
         } else {
@@ -116,7 +128,7 @@ class TransitionNode extends EffectNode {
      *
      * @return {Boolean} returns True if a transition is removed, false otherwise.
      */
-    clearTransition(propertyName, time) {
+    clearTransition(propertyName: string, time: number) {
         let transitionIndex = undefined;
         for (let i = 0; i < this._transitions[propertyName].length; i++) {
             const transition = this._transitions[propertyName][i];
@@ -131,10 +143,10 @@ class TransitionNode extends EffectNode {
         return false;
     }
 
-    _update(currentTime) {
+    _update(currentTime: number) {
         super._update(currentTime);
         for (const propertyName in this._transitions) {
-            let value = this[propertyName];
+            let value = (this as any)[propertyName];
             if (this._transitions[propertyName].length > 0) {
                 value = this._transitions[propertyName][0].current;
             }
@@ -153,12 +165,12 @@ class TransitionNode extends EffectNode {
                         (this._currentTime - transition.start) /
                         (transition.end - transition.start);
                     transitionActive = true;
-                    this[propertyName] = transition.current + difference * progress;
+                    (this as any)[propertyName] = transition.current + difference * progress;
                     break;
                 }
             }
 
-            if (!transitionActive) this[propertyName] = value;
+            if (!transitionActive) (this as any)[propertyName] = value;
         }
     }
 }

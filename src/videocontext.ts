@@ -1,10 +1,5 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
-import {
-    UpdateablesManager,
-    importSimpleEDL,
-    snapshot,
-    generateRandomId
-} from "./utils.js";
+import { UpdateablesManager, importSimpleEDL, snapshot, generateRandomId } from "./utils.js";
 import NODES from "./SourceNodes/nodes.js";
 import VideoNode, { VIDEOTYPE } from "./SourceNodes/videonode.js";
 import AudioNode from "./SourceNodes/audionode.js";
@@ -42,25 +37,25 @@ export default class VideoContext {
     private _canvas: HTMLCanvasElement;
     private _endOnLastSourceEnd: boolean;
     private _gl: WebGLRenderingContext | null;
-    private _useVideoElementCache: boolean;
+    private _useVideoElementCache!: boolean;
     private _videoElementCache: VideoElementCache | undefined;
-    private _id: string;
-    private _renderGraph: RenderGraph;
-    private _sourceNodes: any[];
-    private _processingNodes: any[];
-    private _timeline: any[];
-    private _currentTime: number;
-    private _state: number;
-    private _playbackRate: number;
-    private _volume: number;
+    private _id!: string;
+    private _renderGraph!: RenderGraph;
+    private _sourceNodes!: any[];
+    private _processingNodes!: any[];
+    private _timeline!: any[];
+    private _currentTime!: number;
+    private _state!: number;
+    private _playbackRate!: number;
+    private _volume!: number;
     private _sourcesPlaying: boolean | undefined;
-    private _destinationNode: DestinationNode;
-    private _stallStartTime: number | null;
-    private _stallTimeout: number;
-    private _seekDebounce: number;
-    private _seekDebounceTimer: ReturnType<typeof setTimeout> | null;
-    private _callbacks: Map<string, Array<(currentTime: number) => void>>;
-    private _timelineCallbacks: Array<{ time: number; func: () => void; ordering: number }>;
+    private _destinationNode!: DestinationNode;
+    private _stallStartTime!: number | null;
+    private _stallTimeout!: number;
+    private _seekDebounce!: number;
+    private _seekDebounceTimer!: ReturnType<typeof setTimeout> | null;
+    private _callbacks!: Map<string, Array<(currentTime: number) => void>>;
+    private _timelineCallbacks!: Array<{ time: number; func: () => void; ordering: number }>;
 
     // ---------------------------------------------------------------------------
     // Static member declarations (assigned below class definition)
@@ -138,12 +133,8 @@ export default class VideoContext {
         }
 
         // Create a unique ID for this VideoContext which can be used in the debugger.
-        if (this._canvas.id) {
-            if (typeof this._canvas.id === "string") {
-                this._id = canvas.id;
-            }
-        }
-        if (this._id === undefined) this._id = generateRandomId();
+        this._id =
+            this._canvas.id && typeof this._canvas.id === "string" ? canvas.id : generateRandomId();
         if (window.__VIDEOCONTEXT_REFS__ === undefined) window.__VIDEOCONTEXT_REFS__ = {};
         window.__VIDEOCONTEXT_REFS__[this._id] = this;
 
@@ -156,7 +147,7 @@ export default class VideoContext {
         this._playbackRate = 1.0;
         this._volume = 1.0;
         this._sourcesPlaying = undefined;
-        this._destinationNode = new DestinationNode(this._gl, this._renderGraph);
+        this._destinationNode = new DestinationNode(this._gl!, this._renderGraph);
 
         this._stallStartTime = null;
         this._stallTimeout = stallTimeout;
@@ -165,7 +156,7 @@ export default class VideoContext {
 
         this._callbacks = new Map();
         Object.keys(VideoContext.EVENTS).forEach((name) =>
-            this._callbacks.set(VideoContext.EVENTS[name], [])
+            this._callbacks.set((VideoContext.EVENTS as any)[name], [])
         );
 
         this._timelineCallbacks = [];
@@ -200,7 +191,7 @@ export default class VideoContext {
      * @param {Function} func - the callback to register.
      * @param {number} ordering - the order in which to call the callback if more than one is registered for the same time.
      */
-    registerTimelineCallback(time, func, ordering = 0) {
+    registerTimelineCallback(time: number, func: () => void, ordering = 0) {
         this._timelineCallbacks.push({
             time: time,
             func: func,
@@ -212,7 +203,7 @@ export default class VideoContext {
      * Unregister a callback which happens at a specific point in time.
      * @param {Function} func - the callback to unregister.
      */
-    unregisterTimelineCallback(func) {
+    unregisterTimelineCallback(func: () => void) {
         const toRemove = [];
         for (const callback of this._timelineCallbacks) {
             if (callback.func === func) {
@@ -238,9 +229,9 @@ export default class VideoContext {
      * ctx.registerCallback(VideoContext.EVENTS.UPDATE, () => console.log("new frame"));
      * ctx.registerCallback(VideoContext.EVENTS.ENDED, () => console.log("Playback ended"));
      */
-    registerCallback(type, func) {
+    registerCallback(type: string, func: (currentTime: number) => void) {
         if (!this._callbacks.has(type)) return false;
-        this._callbacks.get(type).push(func);
+        this._callbacks.get(type)!.push(func);
     }
 
     /**
@@ -261,7 +252,7 @@ export default class VideoContext {
      * ctx.unregisterCallback(updateCallback);
      *
      */
-    unregisterCallback(func) {
+    unregisterCallback(func: (currentTime: number) => void) {
         for (const funcArray of this._callbacks.values()) {
             const index = funcArray.indexOf(func);
             if (index !== -1) {
@@ -272,8 +263,8 @@ export default class VideoContext {
         return false;
     }
 
-    private _callCallbacks(type) {
-        const funcArray = this._callbacks.get(type);
+    private _callCallbacks(type: string) {
+        const funcArray = this._callbacks.get(type) ?? [];
         for (const func of funcArray) {
             func(this._currentTime);
         }
@@ -338,7 +329,7 @@ export default class VideoContext {
         }
     }
 
-    private _flushSeek(currentTime) {
+    private _flushSeek(currentTime: number) {
         for (let i = 0; i < this._sourceNodes.length; i++) {
             this._sourceNodes[i]._seek(currentTime);
         }
@@ -530,7 +521,7 @@ export default class VideoContext {
      * var ctx = new VideoContext(canvasElement);
      * var videoNode = ctx.video("bigbuckbunny.mp4");
      */
-    video(src, sourceOffset = 0, preloadTime = 4, videoElementAttributes = {}) {
+    video(src: any, sourceOffset = 0, preloadTime = 4, videoElementAttributes = {}) {
         const videoNode = new VideoNode(
             src,
             this._gl,
@@ -559,7 +550,7 @@ export default class VideoContext {
      * var ctx = new VideoContext(canvasElement);
      * var audioNode = ctx.audio("ziggystardust.mp3");
      */
-    audio(src, sourceOffset = 0, preloadTime = 4, audioElementAttributes = {}) {
+    audio(src: any, sourceOffset = 0, preloadTime = 4, audioElementAttributes = {}) {
         const audioNode = new AudioNode(
             src,
             this._gl,
@@ -593,7 +584,7 @@ export default class VideoContext {
      * var ctx = new VideoContext(canvasElement);
      * var imageNode = ctx.image(imageElement);
      */
-    image(src, preloadTime = 4, imageElementAttributes = {}) {
+    image(src: any, preloadTime = 4, imageElementAttributes = {}) {
         const imageNode = new ImageNode(
             src,
             this._gl,
@@ -611,7 +602,7 @@ export default class VideoContext {
      * @param {Canvas} src - The canvas element to create the canvas node from.
      * @return {CanvasNode} A new canvas node.
      */
-    canvas(canvas) {
+    canvas(canvas: any) {
         const canvasNode = new CanvasNode(canvas, this._gl, this._renderGraph, this._currentTime);
         this._sourceNodes.push(canvasNode);
         return canvasNode;
@@ -622,8 +613,8 @@ export default class VideoContext {
      * @param {Object} definition - this is an object defining the shaders, inputs, and properties of the compositing node to create. Builtin definitions can be found by accessing VideoContext.DEFINITIONS.
      * @return {EffectNode} A new effect node created from the passed definition
      */
-    effect(definition) {
-        const effectNode = new EffectNode(this._gl, this._renderGraph, definition);
+    effect(definition: any) {
+        const effectNode = new EffectNode(this._gl!, this._renderGraph, definition);
         this._processingNodes.push(effectNode);
         return effectNode;
     }
@@ -690,8 +681,8 @@ export default class VideoContext {
      * trackNode.connect(ctx.destination);
      *
      */
-    compositor(definition) {
-        const compositingNode = new CompositingNode(this._gl, this._renderGraph, definition);
+    compositor(definition: any) {
+        const compositingNode = new CompositingNode(this._gl!, this._renderGraph, definition);
         this._processingNodes.push(compositingNode);
         return compositingNode;
     }
@@ -702,7 +693,7 @@ export default class VideoContext {
      * @param {Object} src
      * @param  {...any} options
      */
-    customSourceNode(CustomSourceNode, src, ...options) {
+    customSourceNode(CustomSourceNode: any, src: any, ...options: any[]) {
         const customSourceNode = new CustomSourceNode(
             src,
             this._gl,
@@ -792,13 +783,13 @@ export default class VideoContext {
      * //start playback
      * ctx.play();
      */
-    transition(definition) {
-        const transitionNode = new TransitionNode(this._gl, this._renderGraph, definition);
+    transition(definition: any) {
+        const transitionNode = new TransitionNode(this._gl!, this._renderGraph, definition);
         this._processingNodes.push(transitionNode);
         return transitionNode;
     }
 
-    private _isSourceNodeActive(sourceNode, currentTime = this._currentTime) {
+    private _isSourceNodeActive(sourceNode: any, currentTime = this._currentTime) {
         const startTime = sourceNode.startTime;
         const stopTime = sourceNode.stopTime;
 
@@ -835,11 +826,11 @@ export default class VideoContext {
      * update();
      *
      */
-    update(dt) {
+    update(dt: number) {
         this._update(dt);
     }
 
-    private _update(dt) {
+    private _update(dt: number) {
         //Remove any destroyed nodes
         this._sourceNodes = this._sourceNodes.filter((sourceNode) => {
             if (!sourceNode.destroyed) return sourceNode;
@@ -864,7 +855,7 @@ export default class VideoContext {
                         this._callCallbacks(VideoContext.EVENTS.STALLED);
                     } else if (
                         this._stallTimeout > 0 &&
-                        Date.now() - this._stallStartTime > this._stallTimeout * 1000
+                        Date.now() - this._stallStartTime! > this._stallTimeout * 1000
                     ) {
                         // Stalled too long — escalate to BROKEN
                         this._state = VideoContext.STATE.BROKEN;
@@ -899,8 +890,8 @@ export default class VideoContext {
                 });
 
                 for (const t of timeIntervals) {
-                    const callbacks = activeCallbacks.get(t);
-                    callbacks.sort(function (a, b) {
+                    const callbacks = activeCallbacks.get(t)!;
+                    callbacks.sort(function (a: any, b: any) {
                         return a.ordering - b.ordering;
                     });
                     for (const callback of callbacks) {
@@ -1021,7 +1012,7 @@ export default class VideoContext {
             this._seekDebounceTimer = null;
         }
         Object.keys(VideoContext.EVENTS).forEach((name) =>
-            this._callbacks.set(VideoContext.EVENTS[name], [])
+            this._callbacks.set((VideoContext.EVENTS as any)[name], [])
         );
         this._timelineCallbacks = [];
     }

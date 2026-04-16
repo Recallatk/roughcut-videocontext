@@ -11,9 +11,9 @@
         /* Allow existing JS files to be imported by TS files without converting them */
         "allowJs": true,
         "checkJs": false,
-        /* Gradual migration — not strict yet */
-        "strict": false,
-        "noImplicitAny": false,
+        /* Strict type checking */
+        "strict": true,
+        "noImplicitAny": true,
         /* Emit nothing — Vite handles the build */
         "noEmit": true,
         /* Allow default imports from CommonJS modules */

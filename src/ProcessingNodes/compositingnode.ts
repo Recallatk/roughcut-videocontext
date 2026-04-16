@@ -10,7 +10,7 @@ class CompositingNode extends ProcessingNode {
     /**
      * Initialise an instance of a Compositing Node. You should not instantiate this directly, but use VideoContest.createCompositingNode().
      */
-    constructor(gl, renderGraph, definition) {
+    constructor(gl: WebGLRenderingContext, renderGraph: any, definition: any) {
         const placeholderTexture = createElementTexture(gl);
         gl.texImage2D(
             gl.TEXTURE_2D,
@@ -29,7 +29,7 @@ class CompositingNode extends ProcessingNode {
     }
 
     _render() {
-        const gl = this._gl;
+        const gl = this._gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
         gl.framebufferTexture2D(
             gl.FRAMEBUFFER,
@@ -42,7 +42,7 @@ class CompositingNode extends ProcessingNode {
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        this.inputs.forEach((node) => {
+        this.inputs.forEach((node: any) => {
             if (node === undefined) return;
             super._render();
 

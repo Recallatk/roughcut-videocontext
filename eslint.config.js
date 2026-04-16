@@ -59,4 +59,3 @@ export default tseslint.config(
         ignores: ["node_modules/**", "dist/**", "playwright-report/**", "test-results/**"]
     }
 );
-

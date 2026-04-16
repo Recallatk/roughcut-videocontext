@@ -34,7 +34,13 @@ class ProcessingNode extends GraphNode {
      *
      * This class is not used directly, but is extended to create CompositingNodes, TransitionNodes, and EffectNodes.
      */
-    constructor(gl, renderGraph, definition, inputNames, limitConnections) {
+    constructor(
+        gl: WebGLRenderingContext,
+        renderGraph: any,
+        definition: any,
+        inputNames: any,
+        limitConnections: any
+    ) {
         super(gl, renderGraph, inputNames, limitConnections);
         this._vertexShader = compileShader(gl, definition.vertexShader, gl.VERTEX_SHADER);
         this._fragmentShader = compileShader(gl, definition.fragmentShader, gl.FRAGMENT_SHADER);
@@ -131,17 +137,17 @@ class ProcessingNode extends GraphNode {
         //find the locations of the properties in the compiled shader
         for (const propertyName in this._properties) {
             if (this._properties[propertyName].type === "uniform") {
-                this._properties[propertyName].location = this._gl.getUniformLocation(
-                    this._program,
+                this._properties[propertyName].location = this._gl!.getUniformLocation(
+                    this._program!,
                     propertyName
                 );
             }
         }
-        this._currentTimeLocation = this._gl.getUniformLocation(this._program, "currentTime");
+        this._currentTimeLocation = this._gl!.getUniformLocation(this._program!, "currentTime");
         this._currentTime = 0;
 
         //Other setup
-        const positionLocation = gl.getAttribLocation(this._program, "a_position");
+        const positionLocation = gl.getAttribLocation(this._program!, "a_position");
         const buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.enableVertexAttribArray(positionLocation);
@@ -151,7 +157,7 @@ class ProcessingNode extends GraphNode {
             new Float32Array([1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
             gl.STATIC_DRAW
         );
-        const texCoordLocation = gl.getAttribLocation(this._program, "a_texCoord");
+        const texCoordLocation = gl.getAttribLocation(this._program!, "a_texCoord");
         gl.enableVertexAttribArray(texCoordLocation);
         gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
         this._displayName = TYPE;
@@ -167,7 +173,7 @@ class ProcessingNode extends GraphNode {
      * var monoNode = ctx.effect(VideoContext.DEFINITIONS.MONOCHROME);
      * monoNode.setProperty("inputMix", [1.0,0.0,0.0]); //Just use red channel
      */
-    setProperty(name, value) {
+    setProperty(name: string, value: any) {
         this._properties[name].value = value;
     }
 
@@ -181,7 +187,7 @@ class ProcessingNode extends GraphNode {
      * console.log(monoNode.getProperty("inputMix")); //Will output [0.4,0.6,0.2], the default value from the effect definition.
      *
      */
-    getProperty(name) {
+    getProperty(name: string) {
         return this._properties[name].value;
     }
 
@@ -190,40 +196,41 @@ class ProcessingNode extends GraphNode {
      */
     destroy() {
         super.destroy();
+        const gl = this._gl!;
         //destrpy texutres for any texture properties
         for (const propertyName in this._properties) {
             const propertyValue = this._properties[propertyName].value;
             if (propertyValue instanceof Image) {
-                this._gl.deleteTexture(this._properties[propertyName].texture);
-                this._texture = undefined;
+                gl.deleteTexture(this._properties[propertyName].texture);
+                this._texture = null;
             }
         }
         //Destroy main
-        this._gl.deleteTexture(this._texture);
-        this._texture = undefined;
+        gl.deleteTexture(this._texture);
+        this._texture = null;
         //Detach shaders
-        this._gl.detachShader(this._program, this._vertexShader);
-        this._gl.detachShader(this._program, this._fragmentShader);
+        gl.detachShader(this._program!, this._vertexShader!);
+        gl.detachShader(this._program!, this._fragmentShader!);
         //Delete shaders
-        this._gl.deleteShader(this._vertexShader);
-        this._gl.deleteShader(this._fragmentShader);
+        gl.deleteShader(this._vertexShader);
+        gl.deleteShader(this._fragmentShader);
         //Delete program
-        this._gl.deleteProgram(this._program);
+        gl.deleteProgram(this._program);
         //Delete Framebuffer
-        this._gl.deleteFramebuffer(this._framebuffer);
+        gl.deleteFramebuffer(this._framebuffer);
     }
 
-    _update(currentTime) {
+    _update(currentTime: number) {
         this._currentTime = currentTime;
     }
 
-    _seek(currentTime) {
+    _seek(currentTime: number) {
         this._currentTime = currentTime;
     }
 
     _render() {
         this._rendered = true;
-        const gl = this._gl;
+        const gl = this._gl!;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         gl.useProgram(this._program);

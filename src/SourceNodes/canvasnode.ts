@@ -9,7 +9,13 @@ class CanvasNode extends SourceNode {
      * Initialise an instance of a CanvasNode.
      * This should not be called directly, but created through a call to videoContext.createCanvasNode();
      */
-    constructor(canvas, gl, renderGraph, currentTime, preloadTime = 4) {
+    constructor(
+        canvas: any,
+        gl: WebGLRenderingContext | null,
+        renderGraph: any,
+        currentTime: number,
+        preloadTime = 4
+    ) {
         super(canvas, gl, renderGraph, currentTime);
         this._preloadTime = preloadTime;
         this._displayName = TYPE;
@@ -26,7 +32,7 @@ class CanvasNode extends SourceNode {
         this._ready = false;
     }
 
-    _seek(time) {
+    _seek(time: number) {
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
             if (this._element === undefined) this._load();
@@ -40,7 +46,7 @@ class CanvasNode extends SourceNode {
         }
     }
 
-    _update(currentTime) {
+    _update(currentTime: number, _triggerTextureUpdate = true) {
         //if (!super._update(currentTime)) return false;
         super._update(currentTime);
         if (
@@ -58,6 +64,7 @@ class CanvasNode extends SourceNode {
             this._unload();
             return false;
         }
+        return false;
     }
 }
 

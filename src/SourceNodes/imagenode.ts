@@ -12,7 +12,14 @@ class ImageNode extends SourceNode {
      * Initialise an instance of an ImageNode.
      * This should not be called directly, but created through a call to videoContext.createImageNode();
      */
-    constructor(src, gl, renderGraph, currentTime, preloadTime = 4, attributes = {}) {
+    constructor(
+        src: any,
+        gl: WebGLRenderingContext | null,
+        renderGraph: any,
+        currentTime: number,
+        preloadTime = 4,
+        attributes = {}
+    ) {
         super(src, gl, renderGraph, currentTime);
         this._preloadTime = preloadTime;
         this._attributes = attributes;
@@ -27,7 +34,7 @@ class ImageNode extends SourceNode {
     _load() {
         if (this._image !== undefined) {
             for (const key in this._attributes) {
-                this._image[key] = this._attributes[key];
+                (this._image as any)[key] = this._attributes[key];
             }
             return;
         }
@@ -41,7 +48,7 @@ class ImageNode extends SourceNode {
                 this._ready = true;
                 if (window.createImageBitmap) {
                     window
-                        .createImageBitmap(this._image, { imageOrientation: "flipY" })
+                        .createImageBitmap(this._image!, { imageOrientation: "flipY" })
                         .then((imageBitmap) => {
                             this._element = imageBitmap;
                             this._triggerCallbacks("loaded");
@@ -57,10 +64,10 @@ class ImageNode extends SourceNode {
             };
 
             for (const key in this._attributes) {
-                this._image[key] = this._attributes[key];
+                (this._image as any)[key] = this._attributes[key];
             }
         }
-        this._image.onerror = () => {
+        this._image!.onerror = () => {
             console.debug("Error with element", this._image);
             this._state = SOURCENODESTATE.error;
             //Event though there's an error ready should be set to true so the node can output transparenn
@@ -74,7 +81,7 @@ class ImageNode extends SourceNode {
         if (this._isResponsibleForElementLifeCycle) {
             if (this._image !== undefined) {
                 this._image.src = "";
-                this._image.onerror = undefined;
+                this._image.onerror = null;
                 this._image = undefined;
                 delete this._image;
             }
@@ -85,7 +92,7 @@ class ImageNode extends SourceNode {
         this._ready = false;
     }
 
-    _seek(time) {
+    _seek(time: number) {
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
             if (this._image === undefined) this._load();
@@ -98,7 +105,7 @@ class ImageNode extends SourceNode {
         }
     }
 
-    _update(currentTime) {
+    _update(currentTime: number, _triggerTextureUpdate = true) {
         //if (!super._update(currentTime)) return false;
         if (this._textureUploaded) {
             super._update(currentTime, false);
@@ -121,6 +128,7 @@ class ImageNode extends SourceNode {
             this._unload();
             return false;
         }
+        return false;
     }
 }
 

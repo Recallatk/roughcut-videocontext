@@ -18,8 +18,8 @@ import { COMPOSITINGTYPE } from "./ProcessingNodes/compositingnode.js";
  * @return {WebGLShader} A compiled shader.
  *
  */
-export function compileShader(gl, shaderSource, shaderType) {
-    const shader = gl.createShader(shaderType);
+export function compileShader(gl: WebGLRenderingContext, shaderSource: string, shaderType: number) {
+    const shader = gl.createShader(shaderType)!;
     gl.shaderSource(shader, shaderSource);
     gl.compileShader(shader);
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
@@ -38,7 +38,11 @@ export function compileShader(gl, shaderSource, shaderType) {
  *
  * @return {WebGLProgram} A compiled & linkde shader program.
  */
-export function createShaderProgram(gl, vertexShader, fragmentShader) {
+export function createShaderProgram(
+    gl: WebGLRenderingContext,
+    vertexShader: WebGLShader,
+    fragmentShader: WebGLShader
+) {
     const program = gl.createProgram();
 
     gl.attachShader(program, vertexShader);
@@ -57,7 +61,7 @@ export function createShaderProgram(gl, vertexShader, fragmentShader) {
     return program;
 }
 
-export function createElementTexture(gl) {
+export function createElementTexture(gl: WebGLRenderingContext) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -72,8 +76,8 @@ export function createElementTexture(gl) {
     return texture;
 }
 
-export function updateTexture(gl, texture, element) {
-    if (element.readyState !== undefined && element.readyState === 0) return;
+export function updateTexture(gl: WebGLRenderingContext | null, texture: any, element: any) {
+    if (!gl) return;
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, element);
@@ -81,8 +85,8 @@ export function updateTexture(gl, texture, element) {
     texture._isTextureCleared = false;
 }
 
-export function clearTexture(gl, texture) {
-    // A quick check to ensure we don't call 'texImage2D' when the texture has already been 'cleared' #performance
+export function clearTexture(gl: WebGLRenderingContext | null, texture: any) {
+    if (!gl) return;
     if (!texture._isTextureCleared) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -219,12 +223,12 @@ export function generateRandomId() {
         "sea anemone"
     ];
 
-    function randomChoice(array) {
+    function randomChoice(array: any[]) {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    function capitalize(word) {
-        word = word.replace(/\b\w/g, (l) => l.toUpperCase());
+    function capitalize(word: string) {
+        word = word.replace(/\b\w/g, (l: string) => l.toUpperCase());
         return word;
     }
 
@@ -239,21 +243,21 @@ export function generateRandomId() {
     return name;
 }
 
-export function exportToJSON(vc) {
+export function exportToJSON(vc: any) {
     console.warn(
         "VideoContext.exportToJSON has been deprecated. Please use VideoContext.snapshot instead."
     );
     return JSON.stringify(snapshotNodes(vc));
 }
 
-export function snapshot(vc) {
+export function snapshot(vc: any) {
     return {
         nodes: snapshotNodes(vc),
         videoContext: snapshotVideoContext(vc)
     };
 }
 
-function snapshotVideoContext(vc) {
+function snapshotVideoContext(vc: any) {
     return {
         currentTime: vc.currentTime,
         duration: vc.duration,
@@ -263,14 +267,14 @@ function snapshotVideoContext(vc) {
 }
 
 let warningExportSourceLogged = false;
-function snapshotNodes(vc) {
-    function qualifyURL(url) {
+function snapshotNodes(vc: any) {
+    function qualifyURL(url: any) {
         const a = document.createElement("a");
         a.href = url;
         return a.href;
     }
 
-    function getInputIDs(node, vc) {
+    function getInputIDs(node: any, vc: any) {
         const inputs = [];
         for (const input of node.inputs) {
             if (input === undefined) continue;
@@ -292,11 +296,11 @@ function snapshotNodes(vc) {
         return inputs;
     }
 
-    const result = {};
+    const result: Record<string, any> = {};
 
     const sourceNodeStateMapping = [];
     for (const state in SOURCENODESTATE) {
-        sourceNodeStateMapping[SOURCENODESTATE[state]] = state;
+        sourceNodeStateMapping[(SOURCENODESTATE as any)[state]] = state;
     }
 
     for (const index in vc._sourceNodes) {
@@ -344,7 +348,7 @@ function snapshotNodes(vc) {
             type: processor.displayName,
             definition: processor._definition,
             inputs: getInputIDs(processor, vc),
-            properties: {}
+            properties: {} as Record<string, any>
         };
 
         for (const property in node.definition.properties) {
@@ -366,7 +370,7 @@ function snapshotNodes(vc) {
     return result;
 }
 
-export function createControlFormForNode(node, nodeName) {
+export function createControlFormForNode(node: any, nodeName: any) {
     const rootDiv = document.createElement("div");
 
     if (nodeName !== undefined) {
@@ -469,12 +473,12 @@ export function createControlFormForNode(node, nodeName) {
     return rootDiv;
 }
 
-function calculateNodeDepthFromDestination(videoContext) {
+function calculateNodeDepthFromDestination(videoContext: any) {
     const destination = videoContext.destination;
     const depthMap = new Map();
     depthMap.set(destination, 0);
 
-    function itterateBackwards(node, depth = 0) {
+    function itterateBackwards(node: any, depth = 0) {
         for (const n of node.inputs) {
             const d = depth + 1;
             if (depthMap.has(n)) {
@@ -492,7 +496,7 @@ function calculateNodeDepthFromDestination(videoContext) {
     return depthMap;
 }
 
-export function visualiseVideoContextGraph(videoContext, canvas) {
+export function visualiseVideoContextGraph(videoContext: any, canvas: any) {
     const ctx = canvas.getContext("2d");
     const w = canvas.width;
     const h = canvas.height;
@@ -509,7 +513,7 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
     const nodeHeight = h / videoContext._sourceNodes.length / 3;
     const nodeWidth = nodeHeight * 1.618;
 
-    function calculateNodePos(node, nodeDepths, xStep, nodeHeight) {
+    function calculateNodePos(node: any, nodeDepths: any, xStep: number, nodeHeight: number) {
         const depth = nodeDepths.get(node);
         nodeDepths.values();
 
@@ -519,7 +523,7 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
             if (nodeDepth[1] === depth) count += 1;
         }
         return {
-            x: xStep * nodeDepths.get(node),
+            x: xStep * (nodeDepths.get(node) ?? 0),
             y: nodeHeight * 1.5 * count + 50
         };
     }
@@ -600,8 +604,8 @@ export function visualiseVideoContextGraph(videoContext, canvas) {
     return;
 }
 
-export function createSigmaGraphDataFromRenderGraph(videoContext) {
-    function idForNode(node) {
+export function createSigmaGraphDataFromRenderGraph(videoContext: any) {
+    function idForNode(node: any) {
         if (videoContext._sourceNodes.indexOf(node) !== -1) {
             const id = "source " + node.displayName + " " + videoContext._sourceNodes.indexOf(node);
             return id;
@@ -661,7 +665,7 @@ export function createSigmaGraphDataFromRenderGraph(videoContext) {
     return graph;
 }
 
-export function importSimpleEDL(ctx, playlist) {
+export function importSimpleEDL(ctx: any, playlist: any) {
     // Create a "track" node to connect all the clips to.
     const trackNode = ctx.compositor(DEFINITIONS.COMBINE);
 
@@ -683,7 +687,7 @@ export function importSimpleEDL(ctx, playlist) {
     return trackNode;
 }
 
-export function visualiseVideoContextTimeline(videoContext, canvas, currentTime) {
+export function visualiseVideoContextTimeline(videoContext: any, canvas: any, currentTime: number) {
     const ctx = canvas.getContext("2d");
     const w = canvas.width;
     const h = canvas.height;
@@ -806,7 +810,7 @@ export class UpdateablesManager {
         if (!this._webWorker) {
             this._initWebWorker();
         }
-        this._webWorker.postMessage("start");
+        this._webWorker!.postMessage("start");
     }
 
     _gainedVisibility() {
@@ -841,27 +845,27 @@ export class UpdateablesManager {
         requestAnimationFrame(this._updateRAFTime.bind(this));
     }
 
-    _updateWorkerTime(time) {
-        const dt = (time - this._previousWorkerTime) / 1000;
+    _updateWorkerTime(time: number) {
+        const dt = (time - (this._previousWorkerTime ?? 0)) / 1000;
         if (dt !== 0) this._update(dt);
         this._previousWorkerTime = time;
     }
 
-    _updateRAFTime(time) {
+    _updateRAFTime(time: number) {
         if (this._previousRAFTime === undefined) this._previousRAFTime = time;
-        const dt = (time - this._previousRAFTime) / 1000;
+        const dt = (time - this._previousRAFTime!) / 1000;
         if (dt !== 0) this._update(dt);
         this._previousRAFTime = time;
         if (!this._useWebworker) requestAnimationFrame(this._updateRAFTime.bind(this));
     }
 
-    _update(dt) {
+    _update(dt: number) {
         for (let i = 0; i < this._updateables.length; i++) {
-            this._updateables[i]._update(parseFloat(dt));
+            this._updateables[i]._update(dt);
         }
     }
 
-    register(updateable) {
+    register(updateable: any) {
         this._updateables.push(updateable);
         if (this._active === false) {
             this._active = true;
@@ -869,12 +873,12 @@ export class UpdateablesManager {
         }
     }
 
-    unregister(updateable) {
+    unregister(updateable: any) {
         const index = this._updateables.indexOf(updateable);
         if (index !== -1) this._updateables.splice(index, 1);
     }
 }
 
-export function mediaElementHasSource({ src, srcObject }) {
+export function mediaElementHasSource({ src, srcObject }: { src?: string; srcObject?: any }) {
     return !((src === "" || src === undefined) && srcObject == null);
 }

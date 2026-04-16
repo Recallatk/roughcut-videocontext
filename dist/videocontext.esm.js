@@ -1,5 +1,5 @@
 //#endregion
-//#region src/Definitions/definitions.js
+//#region src/Definitions/definitions.ts
 var e = {
 	AAF_VIDEO_SCALE: {
 		title: "AAF Video Scale Effect",
@@ -432,6 +432,9 @@ var e = {
 	_play() {
 		this._state === r.paused && (this._triggerCallbacks("play"), this._state = r.playing);
 	}
+	get _buffering() {
+		return !1;
+	}
 	_isReady() {
 		return this._buffering ? !1 : this._state === r.playing || this._state === r.paused || this._state === r.error ? this._ready : !0;
 	}
@@ -517,8 +520,8 @@ var e = {
 		this._element && this._element.pause(), super.destroy();
 	}
 }, s = "VideoNode", c = class extends o {
-	constructor() {
-		super(...arguments), this._displayName = s, this._elementType = "video";
+	constructor(e, t, n, r, i, a, o, c, l) {
+		super(e, t, n, r, i, a, o, c, l), this._displayName = s, this._elementType = "video";
 	}
 }, l = "CanvasNode", u = class extends a {
 	constructor(e, t, n, r, i = 4) {
@@ -573,18 +576,15 @@ var e = {
 		if (this._textureUploaded ? super._update(e, !1) : super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused) return !0;
 		if (this._state === r.ended && this._image !== void 0) return this._unload(), !1;
 	}
-};
-//#endregion
-//#region src/exceptions.js
-function p(e) {
-	this.message = e, this.name = "ConnectionException";
-}
-function m(e) {
-	this.message = e, this.name = "RenderException";
-}
-//#endregion
-//#region src/ProcessingNodes/processingnode.js
-var h = "ProcessingNode", g = class extends n {
+}, p = class extends Error {
+	constructor(e) {
+		super(e), this.name = "ConnectionException";
+	}
+}, m = class extends Error {
+	constructor(e) {
+		super(e), this.name = "RenderException";
+	}
+}, h = "ProcessingNode", g = class extends n {
 	constructor(e, t, n, r, i) {
 		super(e, t, r, i), this._vertexShader = D(e, n.vertexShader, e.VERTEX_SHADER), this._fragmentShader = D(e, n.fragmentShader, e.FRAGMENT_SHADER), this._definition = n, this._properties = {};
 		for (let e in n.properties) {
@@ -652,7 +652,7 @@ var h = "ProcessingNode", g = class extends n {
 	_render() {
 		this._rendered = !0;
 		let e = this._gl;
-		e.viewport(0, 0, e.canvas.width, e.canvas.height), e.useProgram(this._program), e.uniform1f(this._currentTimeLocation, parseFloat(this._currentTime));
+		e.viewport(0, 0, e.canvas.width, e.canvas.height), e.useProgram(this._program), e.uniform1f(this._currentTimeLocation, this._currentTime);
 		for (let t in this._properties) {
 			let n = this._properties[t].value, r = this._properties[t].type, i = this._properties[t].location;
 			if (r === "uniform") {
@@ -795,7 +795,7 @@ var h = "ProcessingNode", g = class extends n {
 	}
 };
 //#endregion
-//#region src/utils.js
+//#region src/utils.ts
 function D(e, t, n) {
 	let r = e.createShader(n);
 	if (e.shaderSource(r, t), e.compileShader(r), !e.getShaderParameter(r, e.COMPILE_STATUS)) throw "could not compile shader:" + e.getShaderInfoLog(r);
@@ -855,15 +855,12 @@ function M() {
 	return a = i(a), a = a.replace(/ /g, "-"), a;
 }
 function N(e) {
-	return console.warn("VideoContext.exportToJSON has been deprecated. Please use VideoContext.snapshot instead."), JSON.stringify(L(e));
-}
-function P(e) {
 	return {
-		nodes: L(e),
-		videoContext: F(e)
+		nodes: I(e),
+		videoContext: P(e)
 	};
 }
-function F(e) {
+function P(e) {
 	return {
 		currentTime: e.currentTime,
 		duration: e.duration,
@@ -871,8 +868,8 @@ function F(e) {
 		playbackRate: e.playbackRate
 	};
 }
-var I = !1;
-function L(e) {
+var F = !1;
+function I(e) {
 	function t(e) {
 		var t = document.createElement("a");
 		return t.href = e, t.href;
@@ -898,7 +895,7 @@ function L(e) {
 	for (let e in r) a[r[e]] = e;
 	for (let n in e._sourceNodes) {
 		let r = e._sourceNodes[n], o = "source" + n, s;
-		r._isResponsibleForElementLifeCycle ? s = t(r._elementURL) : (I ||= (console.debug("Warning - Trying to export source created from an element not a URL. URL of export will be set to the elements src attribute and may be incorrect", r), !0), s = r.element.src);
+		r._isResponsibleForElementLifeCycle ? s = t(r._elementURL) : (F ||= (console.debug("Warning - Trying to export source created from an element not a URL. URL of export will be set to the elements src attribute and may be incorrect", r), !0), s = r.element.src);
 		let c = {
 			type: r.displayName,
 			url: s,
@@ -923,148 +920,7 @@ function L(e) {
 		inputs: n(e.destination, e)
 	}, i;
 }
-function R(e, t) {
-	let n = document.createElement("div");
-	if (t !== void 0) {
-		var r = document.createElement("h2");
-		r.innerHTML = t, n.appendChild(r);
-	}
-	for (let t in e._properties) {
-		let r = document.createElement("p"), a = document.createElement("h3");
-		a.innerHTML = t, r.appendChild(a);
-		let o = e._properties[t].value;
-		if (typeof o == "number") {
-			let n = document.createElement("input");
-			n.setAttribute("type", "range"), n.setAttribute("min", "0"), n.setAttribute("max", "1"), n.setAttribute("step", "0.01"), n.setAttribute("value", o, toString());
-			let i = document.createElement("input");
-			i.setAttribute("type", "number"), i.setAttribute("min", "0"), i.setAttribute("max", "1"), i.setAttribute("step", "0.01"), i.setAttribute("value", o, toString());
-			let a = !1;
-			n.onmousedown = function() {
-				a = !0;
-			}, n.onmouseup = function() {
-				a = !1;
-			}, n.onmousemove = function() {
-				a && (e[t] = parseFloat(n.value), i.value = n.value);
-			}, n.onchange = function() {
-				e[t] = parseFloat(n.value), i.value = n.value;
-			}, i.onchange = function() {
-				e[t] = parseFloat(i.value), n.value = i.value;
-			}, r.appendChild(n), r.appendChild(i);
-		} else if (Object.prototype.toString.call(o) === "[object Array]") for (var i = 0; i < o.length; i++) {
-			let n = document.createElement("input");
-			n.setAttribute("type", "range"), n.setAttribute("min", "0"), n.setAttribute("max", "1"), n.setAttribute("step", "0.01"), n.setAttribute("value", o[i], toString());
-			let a = document.createElement("input");
-			a.setAttribute("type", "number"), a.setAttribute("min", "0"), a.setAttribute("max", "1"), a.setAttribute("step", "0.01"), a.setAttribute("value", o, toString());
-			let s = i, c = !1;
-			n.onmousedown = function() {
-				c = !0;
-			}, n.onmouseup = function() {
-				c = !1;
-			}, n.onmousemove = function() {
-				c && (e[t][s] = parseFloat(n.value), a.value = n.value);
-			}, n.onchange = function() {
-				e[t][s] = parseFloat(n.value), a.value = n.value;
-			}, a.onchange = function() {
-				e[t][s] = parseFloat(a.value), n.value = a.value;
-			}, r.appendChild(n), r.appendChild(a);
-		}
-		n.appendChild(r);
-	}
-	return n;
-}
-function z(e) {
-	let t = e.destination, n = /* @__PURE__ */ new Map();
-	n.set(t, 0);
-	function r(e, t = 0) {
-		for (let i of e.inputs) {
-			let e = t + 1;
-			n.has(i) ? e > n.get(i) && n.set(i, e) : n.set(i, e), r(i, n.get(i));
-		}
-	}
-	return r(t), n;
-}
-function B(e, t) {
-	let n = t.getContext("2d"), r = t.width, i = t.height;
-	n.clearRect(0, 0, r, i);
-	let a = z(e), o = a.values();
-	o = Array.from(o).sort(function(e, t) {
-		return t - e;
-	});
-	let s = r / (o[0] + 1), c = i / e._sourceNodes.length / 3, l = c * 1.618;
-	function u(e, t, n, r) {
-		let i = t.get(e);
-		t.values();
-		let a = 0;
-		for (let n of t) {
-			if (n[0] === e) break;
-			n[1] === i && (a += 1);
-		}
-		return {
-			x: n * t.get(e),
-			y: r * 1.5 * a + 50
-		};
-	}
-	for (let t = 0; t < e._renderGraph.connections.length; t++) {
-		let r = e._renderGraph.connections[t], i = u(r.source, a, s, c), o = u(r.destination, a, s, c);
-		if (i !== void 0 && o !== void 0) {
-			n.beginPath();
-			let e = i.x + l / 2, t = i.y + c / 2, r = o.x + l / 2, a = o.y + c / 2, s = r - e, u = a - t, d = Math.PI / 2 - Math.atan2(s, u), f = Math.sqrt((e - r) ** 2 + (t - a) ** 2), p = Math.min(e, r) + (Math.max(e, r) - Math.min(e, r)) / 2, m = Math.min(t, a) + (Math.max(t, a) - Math.min(t, a)) / 2, h = Math.cos(d + Math.PI / 2) * f / 1.5 + p, g = Math.sin(d + Math.PI / 2) * f / 1.5 + m;
-			n.arc(h, g, f / 1.2, d - Math.PI + .95, d - .95), n.stroke();
-		}
-	}
-	for (let e of a.keys()) {
-		let t = u(e, a, s, c), r = "#AA9639", i = "";
-		e.displayName === "CompositingNode" && (r = "#000000"), e.displayName === "DestinationNode" && (r = "#7D9F35", i = "Output"), e.displayName === "VideoNode" && (r = "#572A72", i = "Video"), e.displayName === "CanvasNode" && (r = "#572A72", i = "Canvas"), e.displayName === "CanvasNode" && (r = "#572A72", i = "Image"), n.beginPath(), n.fillStyle = r, n.fillRect(t.x, t.y, l, c), n.fill(), n.fillStyle = "#000", n.textAlign = "center", n.font = "10px Arial", n.fillText(i, t.x + l / 2, t.y + c / 2 + 2.5), n.fill();
-	}
-}
-function V(e) {
-	function t(t) {
-		return e._sourceNodes.indexOf(t) === -1 ? "processor " + t.displayName + " " + e._processingNodes.indexOf(t) : "source " + t.displayName + " " + e._sourceNodes.indexOf(t);
-	}
-	let n = {
-		nodes: [{
-			id: t(e.destination),
-			label: "Destination Node",
-			x: 2.5,
-			y: .5,
-			size: 2,
-			node: e.destination
-		}],
-		edges: []
-	};
-	for (let r = 0; r < e._sourceNodes.length; r++) {
-		let i = e._sourceNodes[r], a = r * (1 / e._sourceNodes.length);
-		n.nodes.push({
-			id: t(i),
-			label: "Source " + r.toString(),
-			x: 0,
-			y: a,
-			size: 2,
-			color: "#572A72",
-			node: i
-		});
-	}
-	for (let r = 0; r < e._processingNodes.length; r++) {
-		let i = e._processingNodes[r];
-		n.nodes.push({
-			id: t(i),
-			x: Math.random() * 2.5,
-			y: Math.random(),
-			size: 2,
-			node: i
-		});
-	}
-	for (let r = 0; r < e._renderGraph.connections.length; r++) {
-		let i = e._renderGraph.connections[r];
-		n.edges.push({
-			id: "e" + r.toString(),
-			source: t(i.source),
-			target: t(i.destination)
-		});
-	}
-	return n;
-}
-function H(t, n) {
+function L(t, n) {
 	let r = t.compositor(e.COMBINE);
 	for (let e of n) {
 		let n;
@@ -1078,35 +934,7 @@ function H(t, n) {
 	}
 	return r;
 }
-function U(e, t, n) {
-	let r = t.getContext("2d"), i = t.width, a = t.height, o = a / e._sourceNodes.length, s = e.duration;
-	if (n > s && !e.endOnLastSourceEnd && (s = n), e.duration === Infinity) {
-		let t = 0;
-		for (let n = 0; n < e._sourceNodes.length; n++) {
-			let r = e._sourceNodes[n];
-			r._stopTime !== Infinity && (t += r._stopTime);
-		}
-		s = t > e.currentTime ? t + 5 : e.currentTime + 5;
-	}
-	let c = i / s, l = {
-		video: ["#572A72", "#3C1255"],
-		image: ["#7D9F35", "#577714"],
-		canvas: ["#AA9639", "#806D15"]
-	};
-	r.clearRect(0, 0, i, a), r.fillStyle = "#999";
-	for (let t of e._processingNodes) if (t.displayName === "TransitionNode") for (let e in t._transitions) for (let n of t._transitions[e]) {
-		let e = (n.end - n.start) * c, t = a, i = n.start * c;
-		r.fillStyle = "rgba(0,0,0, 0.3)", r.fillRect(i, 0, e, t), r.fill();
-	}
-	for (let t = 0; t < e._sourceNodes.length; t++) {
-		let n = e._sourceNodes[t], i = n._stopTime - n._startTime;
-		i === Infinity && (i = e.currentTime);
-		let a = n._startTime, s = i * c, u = o, d = a * c, f = o * t;
-		r.fillStyle = l.video[t % l.video.length], r.fillRect(d, f, s, u), r.fill();
-	}
-	n !== void 0 && (r.fillStyle = "#000", r.fillRect(n * c, 0, 1, a));
-}
-var W = class {
+var R = class {
 	constructor() {
 		this._updateables = [], this._useWebworker = !1, this._active = !1, this._previousRAFTime = void 0, this._previousWorkerTime = void 0, this._webWorkerString = "            var running = false;            function tick(){                postMessage(Date.now());                if (running){                    setTimeout(tick, 1000/20);                }            }            self.addEventListener('message',function(msg){                var data = msg.data;                if (data === 'start'){                    running = true;                    tick();                }                if (data === 'stop') running = false;            });", this._webWorker = void 0;
 	}
@@ -1155,26 +983,26 @@ var W = class {
 		t !== -1 && this._updateables.splice(t, 1);
 	}
 };
-function G({ src: e, srcObject: t }) {
+function z({ src: e, srcObject: t }) {
 	return !((e === "" || e === void 0) && t == null);
 }
 //#endregion
-//#region src/SourceNodes/audionode.js
-var K = "AudioNode", q = class extends o {
-	constructor() {
-		super(...arguments), this._displayName = K, this._elementType = "audio";
+//#region src/SourceNodes/audionode.ts
+var B = "AudioNode", V = class extends o {
+	constructor(e, t, n, r, i, a, o, s, c) {
+		super(e, t, n, r, i, a, o, s, c), this._displayName = B, this._elementType = "audio";
 	}
 	_update(e) {
-		super._update(e, !1);
+		return super._update(e, !1), !0;
 	}
-}, J = {
-	AudioNode: q,
+}, H = {
+	AudioNode: V,
 	CanvasNode: u,
 	ImageNode: f,
 	MediaNode: o,
 	SourceNode: a,
 	VideoNode: c
-}, Y = class {
+}, U = class {
 	constructor() {
 		this.connections = [];
 	}
@@ -1273,7 +1101,7 @@ var K = "AudioNode", q = class extends o {
 		}
 		return t;
 	}
-}, X = class {
+}, W = class {
 	constructor(e = null) {
 		this._element = this._createElement(), this._node = e;
 	}
@@ -1296,10 +1124,10 @@ var K = "AudioNode", q = class extends o {
 	isPlaying() {
 		return this._node && this._node._state === r.playing;
 	}
-}, Z = class {
+}, G = class {
 	constructor(e = 3) {
 		this._cacheItems = [], this._cacheItemsInitialised = !1;
-		for (let t = 0; t < e; t++) this._cacheItems.push(new X());
+		for (let t = 0; t < e; t++) this._cacheItems.push(new W());
 	}
 	init() {
 		if (!this._cacheItemsInitialised) for (let e of this._cacheItems) try {
@@ -1312,9 +1140,9 @@ var K = "AudioNode", q = class extends o {
 		this._cacheItemsInitialised = !0;
 	}
 	getElementAndLinkToNode(e) {
-		for (let t of this._cacheItems) if (!G(t.element)) return t.linkNode(e), t.element;
+		for (let t of this._cacheItems) if (!z(t.element)) return t.linkNode(e), t.element;
 		console.debug("No available video element in the cache, creating a new one. This may break mobile, make your initial cache larger.");
-		let t = new X(e);
+		let t = new W(e);
 		return this._cacheItems.push(t), this._cacheItemsInitialised = !1, t.element;
 	}
 	unlinkNodeFromElement(e) {
@@ -1325,16 +1153,16 @@ var K = "AudioNode", q = class extends o {
 	}
 	get unused() {
 		let e = 0;
-		for (let t of this._cacheItems) G(t.element) || (e += 1);
+		for (let t of this._cacheItems) z(t.element) || (e += 1);
 		return e;
 	}
-}, Q = new W(), $ = class t {
+}, K = new R(), q = class t {
 	constructor(e, n, { manualUpdate: r = !1, endOnLastSourceEnd: i = !0, useVideoElementCache: a = !0, videoElementCacheSize: o = 6, webglContextAttributes: s = {}, stallTimeout: c = 10, seekDebounce: l = 50 } = {}) {
 		if (this._canvas = e, this._endOnLastSourceEnd = i, this._gl = e.getContext("experimental-webgl", Object.assign({ preserveDrawingBuffer: !0 }, s, { alpha: !1 })), this._gl === null) {
 			console.error("Failed to intialise WebGL."), n && n();
 			return;
 		}
-		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new Z(o)), this._canvas.id && (typeof this._canvas.id == "string" || this._canvas.id instanceof String) && (this._id = e.id), this._id === void 0 && (this._id = M()), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new Y(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || Q.register(this);
+		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new G(o)), this._canvas.id && typeof this._canvas.id == "string" && (this._id = e.id), this._id === void 0 && (this._id = M()), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new U(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || K.register(this);
 	}
 	get id() {
 		return this._id;
@@ -1379,7 +1207,7 @@ var K = "AudioNode", q = class extends o {
 		return this._state;
 	}
 	set currentTime(e) {
-		(typeof e == "string" || e instanceof String) && (e = parseFloat(e)), e < this.duration && this._state === t.STATE.ENDED && (this._state = t.STATE.PAUSED), this._currentTime = e, this._seekDebounce > 0 ? (this._seekDebounceTimer !== null && clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = setTimeout(() => {
+		typeof e == "string" && (e = parseFloat(e)), e < this.duration && this._state === t.STATE.ENDED && (this._state = t.STATE.PAUSED), this._currentTime = e, this._seekDebounce > 0 ? (this._seekDebounceTimer !== null && clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = setTimeout(() => {
 			this._seekDebounceTimer = null, this._flushSeek(this._currentTime);
 		}, this._seekDebounce)) : this._flushSeek(e);
 	}
@@ -1407,7 +1235,7 @@ var K = "AudioNode", q = class extends o {
 		return this._playbackRate;
 	}
 	set volume(e) {
-		for (let t of this._sourceNodes) (t instanceof c || t instanceof q) && (t.volume = e);
+		for (let t of this._sourceNodes) (t instanceof c || t instanceof V) && (t.volume = e);
 		this._volume = e;
 	}
 	get volume() {
@@ -1424,32 +1252,20 @@ var K = "AudioNode", q = class extends o {
 		return this._sourceNodes.push(i), i;
 	}
 	audio(e, t = 0, n = 4, r = {}) {
-		let i = new q(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._audioElementCache, r);
+		let i = new V(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._videoElementCache, r);
 		return this._sourceNodes.push(i), i;
-	}
-	createVideoSourceNode(e, t = 0, n = 4, r = {}) {
-		return this._deprecate("Warning: createVideoSourceNode will be deprecated in v1.0, please switch to using VideoContext.video()"), this.video(e, t, n, r);
 	}
 	image(e, t = 4, n = {}) {
 		let r = new f(e, this._gl, this._renderGraph, this._currentTime, t, n);
 		return this._sourceNodes.push(r), r;
 	}
-	createImageSourceNode(e, t = 0, n = 4, r = {}) {
-		return this._deprecate("Warning: createImageSourceNode will be deprecated in v1.0, please switch to using VideoContext.image()"), this.image(e, t, n, r);
-	}
 	canvas(e) {
 		let t = new u(e, this._gl, this._renderGraph, this._currentTime);
 		return this._sourceNodes.push(t), t;
 	}
-	createCanvasSourceNode(e, t = 0, n = 4) {
-		return this._deprecate("Warning: createCanvasSourceNode will be deprecated in v1.0, please switch to using VideoContext.canvas()"), this.canvas(e, t, n);
-	}
 	effect(e) {
 		let t = new S(this._gl, this._renderGraph, e);
 		return this._processingNodes.push(t), t;
-	}
-	createEffectNode(e) {
-		return this._deprecate("Warning: createEffectNode will be deprecated in v1.0, please switch to using VideoContext.effect()"), this.effect(e);
 	}
 	compositor(e) {
 		let t = new E(this._gl, this._renderGraph, e);
@@ -1459,15 +1275,9 @@ var K = "AudioNode", q = class extends o {
 		let r = new e(t, this._gl, this._renderGraph, this._currentTime, ...n);
 		return this._sourceNodes.push(r), r;
 	}
-	createCompositingNode(e) {
-		return this._deprecate("Warning: createCompositingNode will be deprecated in v1.0, please switch to using VideoContext.compositor()"), this.compositor(e);
-	}
 	transition(e) {
 		let t = new w(this._gl, this._renderGraph, e);
 		return this._processingNodes.push(t), t;
-	}
-	createTransitionNode(e) {
-		return this._deprecate("Warning: createTransitionNode will be deprecated in v1.0, please switch to using VideoContext.transition()"), this.transition(e);
 	}
 	_isSourceNodeActive(e, t = this._currentTime) {
 		let n = e.startTime, r = e.stopTime;
@@ -1523,13 +1333,13 @@ var K = "AudioNode", q = class extends o {
 				this._state === t.STATE.STALLED && i._isReady() && i._state === r.playing && i._pause(), this._state === t.STATE.PAUSED && i._pause(), this._state === t.STATE.PLAYING && i._play(), i._update(this._currentTime), (i._state === r.paused || i._state === r.playing) && (n = !0);
 			}
 			n !== this._sourcesPlaying && this._state === t.STATE.PLAYING && (n === !0 ? this._callCallbacks(t.EVENTS.CONTENT) : this._callCallbacks(t.EVENTS.NOCONTENT), this._sourcesPlaying = n);
-			let i = [], a = this._renderGraph.connections.slice(), o = Y.getInputlessNodes(a);
+			let i = [], a = this._renderGraph.connections.slice(), o = U.getInputlessNodes(a);
 			for (; o.length > 0;) {
 				let e = o.pop();
 				i.push(e);
-				for (let t of Y.outputEdgesFor(e, a)) {
+				for (let t of U.outputEdgesFor(e, a)) {
 					let e = a.indexOf(t);
-					e > -1 && a.splice(e, 1), Y.inputEdgesFor(t.destination, a).length === 0 && o.push(t.destination);
+					e > -1 && a.splice(e, 1), U.inputEdgesFor(t.destination, a).length === 0 && o.push(t.destination);
 				}
 			}
 			for (let e of i) this._sourceNodes.indexOf(e) === -1 && (e._update(this._currentTime), e._render());
@@ -1541,35 +1351,32 @@ var K = "AudioNode", q = class extends o {
 		this._update(0), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._sourcesPlaying = void 0, this._stallStartTime = null, this._seekDebounceTimer !== null && (clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = null), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [];
 	}
 	destroy() {
-		this.reset(), Q.unregister(this), window.__VIDEOCONTEXT_REFS__ && delete window.__VIDEOCONTEXT_REFS__[this._id];
-	}
-	_deprecate(e) {
-		console.log(e);
+		this.reset(), K.unregister(this), window.__VIDEOCONTEXT_REFS__ && delete window.__VIDEOCONTEXT_REFS__[this._id];
 	}
 	static get DEFINITIONS() {
 		return e;
 	}
 	static get NODES() {
-		return J;
+		return H;
 	}
 	snapshot() {
-		return P(this);
+		return N(this);
 	}
 };
-$.STATE = Object.freeze({
+q.STATE = Object.freeze({
 	PLAYING: 0,
 	PAUSED: 1,
 	STALLED: 2,
 	ENDED: 3,
 	BROKEN: 4
-}), $.EVENTS = Object.freeze({
+}), q.EVENTS = Object.freeze({
 	UPDATE: "update",
 	STALLED: "stalled",
 	ENDED: "ended",
 	CONTENT: "content",
 	NOCONTENT: "nocontent"
-}), $.visualiseVideoContextTimeline = U, $.visualiseVideoContextGraph = B, $.createControlFormForNode = R, $.createSigmaGraphDataFromRenderGraph = V, $.exportToJSON = N, $.updateablesManager = Q, $.importSimpleEDL = H;
+}), q.importSimpleEDL = L;
 //#endregion
-export { $ as default };
+export { q as default };
 
 //# sourceMappingURL=videocontext.esm.js.map

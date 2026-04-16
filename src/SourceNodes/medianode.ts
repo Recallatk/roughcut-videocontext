@@ -11,22 +11,22 @@ class MediaNode extends SourceNode {
     _attributes: Record<string, any>;
     _loopElement: boolean;
     _isElementPlaying: boolean;
-    _loadTriggered: boolean;
-    _elementType: string;
+    _loadTriggered!: boolean;
+    _elementType!: string;
 
     /**
      * Initialise an instance of a MediaNode.
      * This should not be called directly, but extended by other Node Types which use a `HTMLMediaElement`.
      */
     constructor(
-        src,
-        gl,
-        renderGraph,
-        currentTime,
+        src: any,
+        gl: WebGLRenderingContext | null,
+        renderGraph: any,
+        currentTime: number,
         globalPlaybackRate = 1.0,
         sourceOffset = 0,
         preloadTime = 4,
-        mediaElementCache = undefined,
+        mediaElementCache: any = undefined,
         attributes = {}
     ) {
         super(src, gl, renderGraph, currentTime);
@@ -56,7 +56,7 @@ class MediaNode extends SourceNode {
                 this._element.pause();
             } else {
                 if (this._state === SOURCENODESTATE.playing) {
-                    this._element.play().catch((e) => {
+                    this._element.play().catch((e: any) => {
                         if (e.name !== "AbortError") throw e;
                     });
                 }
@@ -89,7 +89,7 @@ class MediaNode extends SourceNode {
         return false;
     }
 
-    set volume(volume) {
+    set volume(volume: number) {
         this._attributes.volume = volume;
         if (this._element !== undefined) this._element.volume = this._attributes.volume;
     }
@@ -227,10 +227,9 @@ class MediaNode extends SourceNode {
         this._loadTriggered = false;
     }
 
-    _seek(time) {
+    _seek(time: number) {
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
-            if (this._element === undefined) this._load();
             const relativeTime = this._currentTime - this._startTime + this._sourceOffset;
             this._element.currentTime = relativeTime;
             this._ready = false;
@@ -243,8 +242,7 @@ class MediaNode extends SourceNode {
         }
     }
 
-    _update(currentTime, triggerTextureUpdate = true) {
-        //if (!super._update(currentTime)) return false;
+    _update(currentTime: number, triggerTextureUpdate = true) {
         super._update(currentTime, triggerTextureUpdate);
         //check if the media has ended
         if (this._element !== undefined) {
@@ -268,7 +266,7 @@ class MediaNode extends SourceNode {
             }
             if (!this._isElementPlaying) {
                 this._isElementPlaying = true; // set optimistically to prevent double-call
-                this._element.play().catch((e) => {
+                this._element.play().catch((e: any) => {
                     if (e.name === "AbortError") {
                         this._isElementPlaying = false; // reset so play is retried next update
                     } else {
@@ -291,6 +289,7 @@ class MediaNode extends SourceNode {
             }
             return false;
         }
+        return false;
     }
 
     clearTimelineState() {

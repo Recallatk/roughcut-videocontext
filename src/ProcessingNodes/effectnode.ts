@@ -10,7 +10,7 @@ class EffectNode extends ProcessingNode {
     /**
      * Initialise an instance of an EffectNode. You should not instantiate this directly, but use VideoContest.createEffectNode().
      */
-    constructor(gl, renderGraph, definition) {
+    constructor(gl: WebGLRenderingContext, renderGraph: any, definition: any) {
         const placeholderTexture = createElementTexture(gl);
         gl.texImage2D(
             gl.TEXTURE_2D,
@@ -31,7 +31,7 @@ class EffectNode extends ProcessingNode {
     }
 
     _render() {
-        const gl = this._gl;
+        const gl = this._gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
         gl.framebufferTexture2D(
             gl.FRAMEBUFFER,

@@ -32,7 +32,7 @@ class SourceNode extends GraphNode {
      * Initialise an instance of a SourceNode.
      * This is the base class for other Nodes which generate media to be passed into the processing pipeline.
      */
-    constructor(src, gl, renderGraph, currentTime) {
+    constructor(src: any, gl: WebGLRenderingContext | null, renderGraph: any, currentTime: number) {
         super(gl, renderGraph, [], true);
         this._element = undefined;
         this._elementURL = undefined;
@@ -57,16 +57,16 @@ class SourceNode extends GraphNode {
         this._ready = false;
         this._loadCalled = false;
         this._stretchPaused = false;
-        this._texture = createElementTexture(gl);
-        gl.texImage2D(
-            gl.TEXTURE_2D,
+        this._texture = createElementTexture(gl!);
+        gl!.texImage2D(
+            gl!.TEXTURE_2D,
             0,
-            gl.RGBA,
+            gl!.RGBA,
             1,
             1,
             0,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
+            gl!.RGBA,
+            gl!.UNSIGNED_BYTE,
             new Uint8Array([0, 0, 0, 0])
         );
         this._callbacks = [];
@@ -182,7 +182,7 @@ class SourceNode extends GraphNode {
      * videoNode.registerCallback("ended", function(){"video has eneded"});
      *
      */
-    registerCallback(type, func) {
+    registerCallback(type: string, func: (...args: any[]) => void) {
         this._callbacks.push({ type: type, func: func });
     }
 
@@ -234,9 +234,8 @@ class SourceNode extends GraphNode {
      * @param {number} time - the time from the currentTime of the VideoContext which to start playing, if negative will play as soon as possible.
      * @return {boolean} Will return true is seqeuncing has succeded, or false if it is already sequenced.
      */
-    start(time) {
+    start(time: number) {
         if (this._state !== STATE.waiting) {
-            console.debug("SourceNode is has already been sequenced. Can't sequence twice.");
             return false;
         }
 
@@ -251,9 +250,8 @@ class SourceNode extends GraphNode {
      * @param {number} time - the time on the VideoContexts timeline to start playing.
      * @return {boolean} Will return true is seqeuncing has succeded, or false if it is already sequenced.
      */
-    startAt(time) {
+    startAt(time: number) {
         if (this._state !== STATE.waiting) {
-            console.debug("SourceNode is has already been sequenced. Can't sequence twice.");
             return false;
         }
         this._startTime = time;
@@ -271,7 +269,7 @@ class SourceNode extends GraphNode {
      * @param {number} time - the time from the currentTime of the video context which to stop playback.
      * @return {boolean} Will return true is seqeuncing has succeded, or false if the playback has already ended or if start hasn't been called yet, or if time is less than the start time.
      */
-    stop(time) {
+    stop(time: number) {
         if (this._state === STATE.ended) {
             console.debug("SourceNode has already ended. Cannot call stop.");
             return false;
@@ -295,7 +293,7 @@ class SourceNode extends GraphNode {
      * @param {number} time - the time on the VideoContexts timeline to stop playing.
      * @return {boolean} Will return true is seqeuncing has succeded, or false if the playback has already ended or if start hasn't been called yet, or if time is less than the start time.
      */
-    stopAt(time) {
+    stopAt(time: number) {
         if (this._state === STATE.ended) {
             console.debug("SourceNode has already ended. Cannot call stop.");
             return false;
@@ -317,7 +315,7 @@ class SourceNode extends GraphNode {
         return this._stopTime;
     }
 
-    _seek(time) {
+    _seek(time: number) {
         this._renderPaused = false;
 
         this._triggerCallbacks("seek", time);
@@ -371,7 +369,7 @@ class SourceNode extends GraphNode {
         return true;
     }
 
-    _update(currentTime, triggerTextureUpdate = true) {
+    _update(currentTime: number, triggerTextureUpdate = true) {
         this._rendered = true;
         const timeDelta = currentTime - this._currentTime;
 
@@ -449,8 +447,8 @@ class SourceNode extends GraphNode {
         this._stopTime = Infinity;
         this._ready = false;
         this._loadCalled = false;
-        this._gl.deleteTexture(this._texture);
-        this._texture = undefined;
+        this._gl?.deleteTexture(this._texture);
+        this._texture = null;
     }
 }
 
