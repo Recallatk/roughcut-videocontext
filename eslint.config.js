@@ -21,8 +21,8 @@ export default [
         rules: {
             // Formatting rules are owned by Prettier — ESLint handles logic only
             "linebreak-style": ["error", "unix"],
-            "quotes": ["error", "double", { "allowTemplateLiterals": true }],
-            "semi": ["error", "always"],
+            quotes: ["error", "double", { allowTemplateLiterals: true }],
+            semi: ["error", "always"],
             "no-console": 0
         }
     },

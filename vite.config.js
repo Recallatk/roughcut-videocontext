@@ -7,12 +7,12 @@ export default defineConfig({
             entry: resolve(__dirname, "src/videocontext.js"),
             name: "VideoContext",
             formats: ["umd", "es"],
-            fileName: (format) => (format === "es" ? "videocontext.esm.js" : "videocontext.js"),
+            fileName: (format) => (format === "es" ? "videocontext.esm.js" : "videocontext.js")
         },
         sourcemap: true,
         rollupOptions: {
             // no external deps — bundle everything
-        },
+        }
     },
     plugins: [
         // Inline .frag and .vert shader files as raw strings
@@ -22,8 +22,8 @@ export default defineConfig({
                 if (id.endsWith(".frag") || id.endsWith(".vert")) {
                     return { code: `export default ${JSON.stringify(src)};`, map: null };
                 }
-            },
-        },
+            }
+        }
     ],
     test: {
         globals: true,
@@ -31,8 +31,8 @@ export default defineConfig({
         include: ["test/unit/**/*.{spec,test}.js", "test/integration/**/*.{spec,test}.js"],
         coverage: {
             provider: "v8",
-            include: ["src/**/*.js"],
-        },
+            include: ["src/**/*.js"]
+        }
         // Vitest handles .frag/.vert natively via the glsl-raw plugin above
-    },
+    }
 });
