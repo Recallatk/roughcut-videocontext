@@ -62,7 +62,8 @@ export default class VideoContext {
             useVideoElementCache = true,
             videoElementCacheSize = 6,
             webglContextAttributes = {},
-            stallTimeout = 10
+            stallTimeout = 10,
+            seekDebounce = 50
         } = {}
     ) {
         this._canvas = canvas;
@@ -111,6 +112,8 @@ export default class VideoContext {
 
         this._stallStartTime = null;
         this._stallTimeout = stallTimeout;
+        this._seekDebounce = seekDebounce;
+        this._seekDebounceTimer = null;
 
         this._callbacks = new Map();
         Object.keys(VideoContext.EVENTS).forEach((name) =>
@@ -265,20 +268,35 @@ export default class VideoContext {
      *
      */
     set currentTime(currentTime) {
-        if (currentTime < this.duration && this._state === VideoContext.STATE.ENDED)
-            this._state = VideoContext.STATE.PAUSED;
-
         if (typeof currentTime === "string" || currentTime instanceof String) {
             currentTime = parseFloat(currentTime);
         }
 
+        if (currentTime < this.duration && this._state === VideoContext.STATE.ENDED)
+            this._state = VideoContext.STATE.PAUSED;
+
+        // Update the playhead immediately so the render loop and UI stay in sync
+        this._currentTime = currentTime;
+
+        if (this._seekDebounce > 0) {
+            // Debounce: only seek source nodes after scrubbing settles
+            if (this._seekDebounceTimer !== null) clearTimeout(this._seekDebounceTimer);
+            this._seekDebounceTimer = setTimeout(() => {
+                this._seekDebounceTimer = null;
+                this._flushSeek(this._currentTime);
+            }, this._seekDebounce);
+        } else {
+            this._flushSeek(currentTime);
+        }
+    }
+
+    _flushSeek(currentTime) {
         for (let i = 0; i < this._sourceNodes.length; i++) {
             this._sourceNodes[i]._seek(currentTime);
         }
         for (let i = 0; i < this._processingNodes.length; i++) {
             this._processingNodes[i]._seek(currentTime);
         }
-        this._currentTime = currentTime;
     }
 
     /**
@@ -1008,6 +1026,10 @@ export default class VideoContext {
         this._playbackRate = 1.0;
         this._sourcesPlaying = undefined;
         this._stallStartTime = null;
+        if (this._seekDebounceTimer !== null) {
+            clearTimeout(this._seekDebounceTimer);
+            this._seekDebounceTimer = null;
+        }
         Object.keys(VideoContext.EVENTS).forEach((name) =>
             this._callbacks.set(VideoContext.EVENTS[name], [])
         );
