@@ -255,13 +255,17 @@ class MediaNode extends SourceNode {
                 this._playbackRateUpdated = false;
             }
             if (!this._isElementPlaying) {
+                this._isElementPlaying = true; // set optimistically to prevent double-call
                 this._element.play().catch((e) => {
-                    if (e.name !== "AbortError") throw e;
+                    if (e.name === "AbortError") {
+                        this._isElementPlaying = false; // reset so play is retried next update
+                    } else {
+                        throw e;
+                    }
                 });
                 if (this._stretchPaused) {
                     this._element.pause();
                 }
-                this._isElementPlaying = true;
             }
             return true;
         } else if (this._state === SOURCENODESTATE.paused) {

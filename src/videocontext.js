@@ -61,7 +61,8 @@ export default class VideoContext {
             endOnLastSourceEnd = true,
             useVideoElementCache = true,
             videoElementCacheSize = 6,
-            webglContextAttributes = {}
+            webglContextAttributes = {},
+            stallTimeout = 10
         } = {}
     ) {
         this._canvas = canvas;
@@ -107,6 +108,9 @@ export default class VideoContext {
         this._volume = 1.0;
         this._sourcesPlaying = undefined;
         this._destinationNode = new DestinationNode(this._gl, this._renderGraph);
+
+        this._stallStartTime = null;
+        this._stallTimeout = stallTimeout;
 
         this._callbacks = new Map();
         Object.keys(VideoContext.EVENTS).forEach((name) =>
@@ -848,9 +852,21 @@ export default class VideoContext {
 
             if (this._state !== VideoContext.STATE.PAUSED) {
                 if (this._isStalled()) {
-                    this._callCallbacks(VideoContext.EVENTS.STALLED);
+                    if (this._state !== VideoContext.STATE.STALLED) {
+                        // Transitioning into stalled — fire callback once and record start time
+                        this._stallStartTime = Date.now();
+                        this._callCallbacks(VideoContext.EVENTS.STALLED);
+                    } else if (
+                        this._stallTimeout > 0 &&
+                        Date.now() - this._stallStartTime > this._stallTimeout * 1000
+                    ) {
+                        // Stalled too long — escalate to BROKEN
+                        this._state = VideoContext.STATE.BROKEN;
+                        return;
+                    }
                     this._state = VideoContext.STATE.STALLED;
                 } else {
+                    this._stallStartTime = null;
                     this._state = VideoContext.STATE.PLAYING;
                 }
             }
@@ -991,6 +1007,7 @@ export default class VideoContext {
         this._state = VideoContext.STATE.PAUSED;
         this._playbackRate = 1.0;
         this._sourcesPlaying = undefined;
+        this._stallStartTime = null;
         Object.keys(VideoContext.EVENTS).forEach((name) =>
             this._callbacks.set(VideoContext.EVENTS[name], [])
         );
