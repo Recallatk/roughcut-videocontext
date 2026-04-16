@@ -1,8 +1,9 @@
 # VideoContext (RoughCut fork)
 
-> This is RoughCut's internal fork of [VideoContext by BBC R&D](https://github.com/bbc/VideoContext),
-> maintained for use in RoughCut's preview player. All changes from the upstream version are
-> documented in [CHANGELOG.md](CHANGELOG.md).
+> This is a fork of [VideoContext by BBC R&D](https://github.com/bbc/VideoContext),
+> maintained by [RoughCut](https://github.com/Recallatk). It is a general-purpose browser
+> video-composition engine — not specific to any one player or application. All changes
+> from the upstream version are documented in [CHANGELOG.md](CHANGELOG.md).
 
 ![build status](https://travis-ci.org/bbc/VideoContext.svg?branch=master)
 
@@ -20,20 +21,20 @@ The design is heavily inspired by the Web Audio API, so it should feel familiar 
 - [Debugging](#debugging)
 - [Documentation](#documentation)
 - [Node Types](#node-types)
-  - [VideoNode](#videonode)
-  - [AudioNode](#audionode)
-  - [ImageNode](#imagenode)
-  - [CanvasNode](#canvasnode)
-  - [CustomSourceNode](#customsourcenode)
-  - [EffectNode](#effectnode)
-  - [TransitionNode](#transitionnode)
-  - [CompositingNode](#compositingnode)
+    - [VideoNode](#videonode)
+    - [AudioNode](#audionode)
+    - [ImageNode](#imagenode)
+    - [CanvasNode](#canvasnode)
+    - [CustomSourceNode](#customsourcenode)
+    - [EffectNode](#effectnode)
+    - [TransitionNode](#transitionnode)
+    - [CompositingNode](#compositingnode)
 - [Writing Custom Effect Definitions](#writing-custom-effect-definitions)
 - [Advanced Examples](#advanced-examples)
 - [Development](#development)
-  - [Gitflow](#gitflow)
-  - [Releases](#releases)
-  - [CI](#ci)
+    - [Gitflow](#gitflow)
+    - [Releases](#releases)
+    - [CI](#ci)
 
 ## Demo
 
@@ -557,15 +558,15 @@ CI will publish to npm when the release branch has been merged into master.
 2. `git pull`
 3. `git checkout -b release-xxx`
 4. tag and push using script
-   - `yarn release:patch|minor|major`
+    - `yarn release:patch|minor|major`
 5. open pull request against master
 6. merge when tests have passed
 7. merge master back in to develop:
-   - `git checkout master`
-   - `git pull`
-   - `git checkout develop`
-   - `git merge master`
-   - `git push`
+    - `git checkout master`
+    - `git pull`
+    - `git checkout develop`
+    - `git merge master`
+    - `git push`
 
 There is one housekeeping task (this will be automated at some point):
 

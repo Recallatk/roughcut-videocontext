@@ -110,9 +110,9 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ### Phase 5 — Public API definition
 
-- Define a RoughCut-supported public API surface
-- Introduce an adapter boundary to decouple app integration
-- Deprecate and remove internal APIs not used by RoughCut
+- Define a clean, documented public API surface using TypeScript types and exports
+- Mark internal implementation details with `private`/`protected`
+- Deprecate and remove genuinely dead/legacy utilities (e.g. `exportToJSON`, Sigma graph helpers)
 
 ### Phase 6 — Modernisation
 
@@ -126,7 +126,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ##### Other Changes
 
-*  working headless but not accurate enough ([3ed7b163](https://github.com/bbc/VideoContext/commit/3ed7b1633f5e2ab1e9edeb338eaeef185cc38a1a))
+- working headless but not accurate enough ([3ed7b163](https://github.com/bbc/VideoContext/commit/3ed7b1633f5e2ab1e9edeb338eaeef185cc38a1a))
 
 #### 0.53.1 (2019-07-05)
 
@@ -134,7 +134,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ##### Other Changes
 
-*  fixing a bug where a texutre isn't cleared when expected to due to start() and startAt() setting STATE to be STATE.sequenced before a clearTexture is called. ([cbd44a11](https://github.com/bbc/VideoContext/commit/cbd44a119749bca69c8b7c1b0de3cb9e4cbad36c))
+- fixing a bug where a texutre isn't cleared when expected to due to start() and startAt() setting STATE to be STATE.sequenced before a clearTexture is called. ([cbd44a11](https://github.com/bbc/VideoContext/commit/cbd44a119749bca69c8b7c1b0de3cb9e4cbad36c))
 
 #### 0.52.13 (2019-01-14)
 
@@ -157,4 +157,3 @@ Entries at `0.54.0` and below are from the upstream project.
 #### 0.52.3 (2018-07-20)
 
 #### 0.52.2 (2018-07-09)
-
