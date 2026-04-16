@@ -499,6 +499,7 @@ var e = {
 	}
 	_seek(e) {
 		if (super._seek(e), this.state === r.playing || this.state === r.paused) {
+			this._element === void 0 && this._load();
 			let e = this._currentTime - this._startTime + this._sourceOffset;
 			this._element.currentTime = e, this._ready = !1;
 		}

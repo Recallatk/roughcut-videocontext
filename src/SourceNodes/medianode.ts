@@ -234,6 +234,7 @@ class MediaNode extends SourceNode {
     _seek(time: number) {
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
+            if (this._element === undefined) this._load();
             const relativeTime = this._currentTime - this._startTime + this._sourceOffset;
             this._element.currentTime = relativeTime;
             this._ready = false;
