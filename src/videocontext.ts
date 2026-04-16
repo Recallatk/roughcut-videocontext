@@ -26,11 +26,59 @@ import DEFINITIONS from "./Definitions/definitions.js";
 
 let updateablesManager = new UpdateablesManager();
 
+interface VideoContextOptions {
+    manualUpdate?: boolean;
+    endOnLastSourceEnd?: boolean;
+    useVideoElementCache?: boolean;
+    videoElementCacheSize?: number;
+    webglContextAttributes?: WebGLContextAttributes;
+    stallTimeout?: number;
+    seekDebounce?: number;
+}
+
 /**
  * VideoContext.
  * @module VideoContext
  */
 export default class VideoContext {
+    // ---------------------------------------------------------------------------
+    // Instance property declarations
+    // ---------------------------------------------------------------------------
+    _canvas: HTMLCanvasElement;
+    _endOnLastSourceEnd: boolean;
+    _gl: WebGLRenderingContext | null;
+    _useVideoElementCache: boolean;
+    _videoElementCache: VideoElementCache | undefined;
+    _id: string;
+    _renderGraph: RenderGraph;
+    _sourceNodes: any[];
+    _processingNodes: any[];
+    _timeline: any[];
+    _currentTime: number;
+    _state: number;
+    _playbackRate: number;
+    _volume: number;
+    _sourcesPlaying: boolean | undefined;
+    _destinationNode: DestinationNode;
+    _stallStartTime: number | null;
+    _stallTimeout: number;
+    _seekDebounce: number;
+    _seekDebounceTimer: ReturnType<typeof setTimeout> | null;
+    _callbacks: Map<string, Array<(currentTime: number) => void>>;
+    _timelineCallbacks: Array<{ time: number; func: () => void; ordering: number }>;
+
+    // ---------------------------------------------------------------------------
+    // Static member declarations (assigned below class definition)
+    // ---------------------------------------------------------------------------
+    static readonly STATE: { PLAYING: 0; PAUSED: 1; STALLED: 2; ENDED: 3; BROKEN: 4 };
+    static readonly EVENTS: { UPDATE: "update"; STALLED: "stalled"; ENDED: "ended"; CONTENT: "content"; NOCONTENT: "nocontent" };
+    static visualiseVideoContextTimeline: typeof visualiseVideoContextTimeline;
+    static visualiseVideoContextGraph: typeof visualiseVideoContextGraph;
+    static createControlFormForNode: typeof createControlFormForNode;
+    static createSigmaGraphDataFromRenderGraph: typeof createSigmaGraphDataFromRenderGraph;
+    static exportToJSON: typeof exportToJSON;
+    static updateablesManager: UpdateablesManager;
+    static importSimpleEDL: typeof importSimpleEDL;
     /**
      * Initialise the VideoContext and render to the specific canvas. A 2nd parameter can be passed to the constructor which is a function that get's called if the VideoContext fails to initialise.
      *
@@ -54,17 +102,17 @@ export default class VideoContext {
      *
      */
     constructor(
-        canvas,
-        initErrorCallback,
+        canvas: HTMLCanvasElement,
+        initErrorCallback?: (() => void) | null,
         {
             manualUpdate = false,
             endOnLastSourceEnd = true,
             useVideoElementCache = true,
             videoElementCacheSize = 6,
-            webglContextAttributes = {},
+            webglContextAttributes = {} as WebGLContextAttributes,
             stallTimeout = 10,
             seekDebounce = 50
-        } = {}
+        }: VideoContextOptions = {}
     ) {
         this._canvas = canvas;
         this._endOnLastSourceEnd = endOnLastSourceEnd;
@@ -76,7 +124,7 @@ export default class VideoContext {
                 webglContextAttributes,
                 { alpha: false } // Can't be overriden because it is copied last
             )
-        );
+        ) as WebGLRenderingContext | null;
         if (this._gl === null) {
             console.error("Failed to intialise WebGL.");
             if (initErrorCallback) initErrorCallback();
@@ -91,7 +139,7 @@ export default class VideoContext {
 
         // Create a unique ID for this VideoContext which can be used in the debugger.
         if (this._canvas.id) {
-            if (typeof this._canvas.id === "string" || this._canvas.id instanceof String) {
+            if (typeof this._canvas.id === "string") {
                 this._id = canvas.id;
             }
         }
@@ -267,8 +315,8 @@ export default class VideoContext {
      * ctx.play();
      *
      */
-    set currentTime(currentTime) {
-        if (typeof currentTime === "string" || currentTime instanceof String) {
+    set currentTime(currentTime: number | string) {
+        if (typeof currentTime === "string") {
             currentTime = parseFloat(currentTime);
         }
 
@@ -316,7 +364,7 @@ export default class VideoContext {
      * setTimeout(() => console.log(ctx.currentTime),1000); //should print roughly 1.0
      *
      */
-    get currentTime() {
+    get currentTime(): number {
         return this._currentTime;
     }
 
@@ -520,7 +568,7 @@ export default class VideoContext {
             this._playbackRate,
             sourceOffset,
             preloadTime,
-            this._audioElementCache,
+            this._videoElementCache,
             audioElementAttributes
         );
         this._sourceNodes.push(audioNode);
@@ -575,7 +623,7 @@ export default class VideoContext {
         this._deprecate(
             "Warning: createImageSourceNode will be deprecated in v1.0, please switch to using VideoContext.image()"
         );
-        return this.image(src, sourceOffset, preloadTime, imageElementAttributes);
+        return this.image(src, preloadTime, imageElementAttributes);
     }
 
     /**
@@ -596,7 +644,7 @@ export default class VideoContext {
         this._deprecate(
             "Warning: createCanvasSourceNode will be deprecated in v1.0, please switch to using VideoContext.canvas()"
         );
-        return this.canvas(canvas, sourceOffset, preloadTime);
+        return this.canvas(canvas);
     }
 
     /**
@@ -1072,40 +1120,26 @@ export default class VideoContext {
 /**
  * Video Context States
  * @readonly
- * @typedef {Object} STATE
- * @property {number} STATE.PLAYING - All sources are active
- * @property {number} STATE.PAUSED - All sources are paused
- * @property {number} STATE.STALLED - One or more sources is unable to play
- * @property {number} STATE.ENDED - All sources have finished playing
- * @property {number} STATE.BROKEN - The render graph is in a broken state
  */
-const STATE = Object.freeze({
+(VideoContext as any).STATE = Object.freeze({
     PLAYING: 0,
     PAUSED: 1,
     STALLED: 2,
     ENDED: 3,
     BROKEN: 4
 });
-VideoContext.STATE = STATE;
 
 /**
  * Video Context Events
  * @readonly
- * @typedef {Object} STATE
- * @property {string} STATE.UPDATE - Called any time a frame is rendered to the screen.
- * @property {string} STATE.STALLED - happens anytime the playback is stopped due to buffer starvation for playing assets.
- * @property {string} STATE.ENDED - Called once plackback has finished (i.e ctx.currentTime == ctx.duration).
- * @property {string} STATE.CONTENT - Called at the start of a time region where there is content playing out of one or more sourceNodes.
- * @property {number} STATE.NOCONTENT - Called at the start of any time region where the VideoContext is still playing, but there are currently no active playing sources.
  */
-const EVENTS = Object.freeze({
+(VideoContext as any).EVENTS = Object.freeze({
     UPDATE: "update",
     STALLED: "stalled",
     ENDED: "ended",
     CONTENT: "content",
     NOCONTENT: "nocontent"
 });
-VideoContext.EVENTS = EVENTS;
 
 VideoContext.visualiseVideoContextTimeline = visualiseVideoContextTimeline;
 VideoContext.visualiseVideoContextGraph = visualiseVideoContextGraph;
