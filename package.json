@@ -8,6 +8,11 @@
     },
     "license": "Apache-2.0",
     "main": "dist/videocontext.js",
+    "module": "dist/videocontext.esm.js",
+    "exports": {
+        "import": "./dist/videocontext.esm.js",
+        "require": "./dist/videocontext.js"
+    },
     "keywords": [
         "video",
         "context",
