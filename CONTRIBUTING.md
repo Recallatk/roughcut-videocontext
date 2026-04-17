@@ -1,29 +1,88 @@
 # Contributing
 
-Thanks for taking the time and checking out the `VideoContext` project!
+Thanks for your interest in contributing to **VideoContext**!
 
-We're excited to hear from you and welcome ideas on how we can make `VideoContext` more useful,
-more stable and a fun project to contribute to!
+This is RoughCut's maintained fork of the original [BBC VideoContext](https://github.com/bbc/VideoContext). We welcome bug reports, documentation improvements, and code contributions.
 
-When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. We really
-value your time, and would love to help out where possible.
+## Getting started
 
-For more detail on the development process see [./README.md#development](./README.md#development)
+```bash
+git clone https://github.com/Recallatk/roughcut-videocontext.git
+cd roughcut-videocontext
+npm install
+npm test          # run unit tests
+npm run build     # build dist/
+npm run typecheck  # run TypeScript checks
+npm run lint      # run ESLint
+```
 
-Please note we have a code of conduct, please follow it in all your interactions with the project.
+### Prerequisites
 
-## Pull Request Process
+- Node.js 22+
+- npm 10+
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a 
-   build.
-2. Update the README.md with details of changes to the interface, this includes new environment 
-   variables, exposed ports, useful file locations and container parameters.
-3. Increase the version numbers in any examples files and the README.md to the new version that this
-   Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. You may merge the Pull Request in once you have the sign-off of two other developers, or if you 
-   do not have permission to do that, you may request the second reviewer to merge it for you.
-## Our Pledge
+## Branch workflow
+
+We use **GitHub Flow**:
+
+1. **Fork** the repo (external contributors) or create a branch (maintainers)
+2. **Branch** from `main` — use a descriptive name:
+   - `fix/seek-regression`
+   - `feat/adapter-boundary`
+   - `chore/update-deps`
+   - `docs/improve-readme`
+3. **Make your changes** — keep PRs focused on a single concern
+4. **Ensure CI passes** — lint, typecheck, and all tests must be green
+5. **Open a Pull Request** against `main`
+6. **Squash-merge** once approved — keeps `main` history clean
+
+### Commit messages
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add adapter boundary for app integration
+fix: restore _element guard in _seek
+chore: remove jsdoc, update serve
+docs: rewrite contributing guide
+test: add cache lifecycle integration tests
+```
+
+The prefix tells readers *what kind* of change it is at a glance.
+
+## Pull request guidelines
+
+- **One concern per PR** — don't mix a bug fix with a refactor
+- **Include tests** for bug fixes and new features
+- **Don't break the build** — `npm test`, `npm run lint`, and `npm run typecheck` must all pass
+- **Update documentation** if your change affects the public API
+- **No `dist/` changes in PRs** — built artifacts are generated during release
+
+## Reporting bugs
+
+Open a [GitHub Issue](https://github.com/Recallatk/roughcut-videocontext/issues) with:
+
+- What you expected to happen
+- What actually happened
+- Steps to reproduce
+- Browser and OS version
+- A minimal code example if possible
+
+## Code style
+
+- TypeScript strict mode (`strict: true`, `noImplicitAny: true`)
+- ESLint enforces style — run `npm run lint` before committing
+- Husky pre-commit hooks run lint, typecheck, and tests automatically
+
+## Code of Conduct
+
+Please follow our [Code of Conduct](#code-of-conduct-1) in all interactions.
+
+---
+
+## Code of Conduct
+
+### Our Pledge
 
 In the interest of fostering an open and welcoming environment, we as
 contributors and maintainers pledge to making participation in our project and
@@ -32,7 +91,7 @@ size, disability, ethnicity, sex characteristics, gender identity and expression
 level of experience, education, socio-economic status, nationality, personal
 appearance, race, religion, or sexual identity and orientation.
 
-## Our Standards
+### Our Standards
 
 Examples of behavior that contributes to creating a positive environment
 include:
@@ -54,7 +113,7 @@ Examples of unacceptable behavior by participants include:
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 
-## Our Responsibilities
+### Our Responsibilities
 
 Project maintainers are responsible for clarifying the standards of acceptable
 behavior and are expected to take appropriate and fair corrective action in
@@ -66,7 +125,7 @@ that are not aligned to this Code of Conduct, or to ban temporarily or
 permanently any contributor for other behaviors that they deem inappropriate,
 threatening, offensive, or harmful.
 
-## Scope
+### Scope
 
 This Code of Conduct applies within all project spaces, and it also applies when
 an individual is representing the project or its community in public spaces.
@@ -75,10 +134,10 @@ project e-mail address, posting via an official social media account, or acting
 as an appointed representative at an online or offline event. Representation of
 a project may be further defined and clarified by project maintainers.
 
-## Enforcement
+### Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at info.rd@bbc.co.uk. All
+reported by contacting the project team at change.me@recallatk.com. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
@@ -88,7 +147,7 @@ Project maintainers who do not follow or enforce the Code of Conduct in good
 faith may face temporary or permanent repercussions as determined by other
 members of the project's leadership.
 
-## Attribution
+### Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
 available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
