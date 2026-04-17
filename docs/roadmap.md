@@ -1,43 +1,46 @@
 # Roadmap
 
-## Phase 1: Stabilization Baseline
-- keep upstream `v0.54.0` as the behavioral baseline
-- use Node 16 for reproducibility
-- keep Yarn Classic during baseline stabilization
-- ensure build and unit tests pass
+## Completed
 
-## Phase 2: RoughCut Regression Coverage
-- add tests for cache-init transport behavior
-- add tests for repeated play/pause interactions
-- add tests for reset/callback cleanup
-- add tests for seek near end-of-track
-- add tests for deterministic playback state under rapid interaction
+### Phase 1: Tooling modernisation
 
-## Phase 3: Narrow Stabilization Patch
-- patch transport races
-- patch cache/media element lifecycle behavior
-- patch callback registration and cleanup behavior
-- keep API changes minimal
+- Vite 8 lib mode (CJS + ESM), Vitest 4, Playwright, ESLint 10, Prettier, Husky, GitHub Actions CI, GitHub Packages publish
 
-## Phase 4: RoughCut App Integration
-- package an internal release of the fork
-- install the fork into the RoughCut app
-- verify preview flows in the app
-- confirm the engine is stable under real usage
+### Phase 2: Engine stabilisation
 
-## Phase 5: Controlled Modernization
-- upgrade Node baseline
-- modernize build pipeline
-- modernize test tooling
-- preserve behavior with regression coverage
+- Stall detection/recovery, seek debounce, reset/callback cleanup, end-of-track determinism, rapid interaction regression tests
 
-## Phase 6: TypeScript Migration
-- start with `allowJs`
-- define public engine types
-- convert core modules gradually
-- reduce reliance on implicit and untyped internals
+### Phase 3: ESM exports
 
-## Phase 7: Owned API Surface
-- define the RoughCut-supported engine contract
-- support adapter-based integration in the app
-- reduce direct dependence on legacy upstream internals
+- Dual CJS/ESM build via Vite lib mode, `exports` field in package.json
+
+### Phase 4: TypeScript migration
+
+- Full TypeScript coverage across all source files, `strict: true`, `noImplicitAny: true`
+
+### Phase 5: Public API surface
+
+- Clean exports, typed public methods, dead code removal
+
+### Phase 6: Quality hardening
+
+- ESLint on TS, strict mode (306 errors resolved), comprehensive unit tests (186 total), cache tests
+
+### Phase 7: Cache and transport hardening
+
+- Removed bogus `VideoElementCache.init()` play() warming
+- Hardened `MediaNode._update()` play() error handling (AbortError retry, error state for others)
+- Fixed `_seek()` regression from TS migration
+
+## Next
+
+### Phase 8: Further hardening
+
+- Additional integration coverage for cache lifecycle under rapid seek/reset
+- Decouple app integration through an adapter boundary
+- Continue reducing `@typescript-eslint/no-explicit-any` warnings (149 remaining)
+
+### Phase 9: App adapter layer
+
+- Define adapter boundary between VideoContext engine and RoughCut app
+- Reduce direct dependence on internal engine state from app code

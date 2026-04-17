@@ -8,16 +8,28 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.7.0 (2026-04-16)
+### 0.54.0-roughcut.7.1 (2026-04)
+
+#### Bugfix — \_seek regression from TS migration
+
+- Restored `if (this._element === undefined) this._load()` guard in `MediaNode._seek()` that was accidentally dropped during Phase 4d TypeScript migration
+- Without this guard, seeking backwards into an ended/unloaded node threw `Cannot set properties of undefined (setting 'currentTime')`
+- 186 tests passing
+
+---
+
+### 0.54.0-roughcut.7.0 (2026-04)
 
 #### Phase 7 — Cache init and MediaNode play() error hardening
 
 **`VideoElementCache.init()`**
+
 - Removed play()-on-sourceless-elements warming loop. `play()` always rejects immediately (`NotSupportedError` / `AbortError`) for elements with no `src`, so the intended gesture-unlock never occurred.
 - Actual autoplay unlocking happens naturally: `MediaNode._update()` calls `play()` on a real-source element during the user's `ctx.play()` gesture — which is how browsers grant autoplay permission.
 - `init()` is now an idempotent marker: sets `_cacheItemsInitialised = true` and returns immediately on repeat calls. No async side-effects.
 
 **`MediaNode._update()` play() error handling**
+
 - Previously only `AbortError` reset `_isElementPlaying`; all other rejections (`NotAllowedError`, `NotSupportedError`, network errors) left the flag stuck `true`, producing a silently frozen node with an unhandled Promise rejection.
 - Now always resets `_isElementPlaying` in `.catch()`.
 - `AbortError` → silent retry next update tick.
@@ -25,13 +37,14 @@ Entries at `0.54.0` and below are from the upstream project.
 - `stretchPaused` resume setter: same pattern — reset flag and log instead of throwing into an unhandled rejection.
 
 **Tests**
+
 - Updated `test/unit/videoelementcache.spec.js`: replaced play()-call assertions with tests verifying `init()` does NOT call `play()`.
 - Added three integration tests in `test/integration/medianode.test.js`: `AbortError` retry, non-`AbortError` error state + callback, and no retry after permanent error.
 - 186 tests passing (was 185)
 
 ---
 
-### 0.54.0-roughcut.6.3 (2026-04-16)
+### 0.54.0-roughcut.6.3 (2026-04)
 
 #### Phase 6d — Unit tests: VideoElementCache + VideoElementCacheItem
 
@@ -42,7 +55,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.6.2 (2026-04-16)
+### 0.54.0-roughcut.6.2 (2026-04)
 
 #### Phase 6c — Unit tests: all node subclasses
 
@@ -56,7 +69,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.6.1 (2026-04-16)
+### 0.54.0-roughcut.6.1 (2026-04)
 
 #### Phase 6b — TypeScript strict mode
 
@@ -67,7 +80,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.6.0 (2026-04-16)
+### 0.54.0-roughcut.6.0 (2026-04)
 
 #### Phase 6a — ESLint extended to TypeScript source files
 
@@ -78,7 +91,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.5.0 (2026-04-16)
+### 0.54.0-roughcut.5.0 (2026-04)
 
 #### Phase 5 — Public API surface
 
@@ -89,7 +102,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.4.4 (2026-04-16)
+### 0.54.0-roughcut.4.4 (2026-04)
 
 #### Phase 4e — TypeScript: utilities and definitions
 
@@ -100,7 +113,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.4.3 (2026-04-16)
+### 0.54.0-roughcut.4.3 (2026-04)
 
 #### Phase 4d — TypeScript: source and processing nodes
 
@@ -112,7 +125,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.4.2 (2026-04-16)
+### 0.54.0-roughcut.4.2 (2026-04)
 
 #### Phase 4c — TypeScript: base classes
 
@@ -124,7 +137,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.4.1 (2026-04-16)
+### 0.54.0-roughcut.4.1 (2026-04)
 
 #### Phase 4b — TypeScript: VideoContext migration
 
@@ -139,7 +152,7 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
-### 0.54.0-roughcut.4.0 (2026-04-16)
+### 0.54.0-roughcut.4.0 (2026-04)
 
 #### Phase 4a — TypeScript toolchain baseline
 
@@ -213,17 +226,6 @@ Entries at `0.54.0` and below are from the upstream project.
 - **1g** CI: GitHub Actions workflow with lint, typecheck, unit test, and build steps
 - **1h** Publish: GitHub Packages publish workflow triggered on `v*` tags; package scoped to `@recallatk/videocontext`
 - **1i** Package: Updated `name`, `main`, `module`, `exports`, `files` in `package.json` for the fork
-
----
-
-## Planned
-
-### Phase 7 — Cache and transport hardening
-
-- `VideoElementCache.init()` lazy-init: avoid unconditional `play()` on construction
-- `MediaNode` `AbortError` recovery: ensure `_isElementPlaying` resets on all error paths
-- Additional integration coverage for cache lifecycle under rapid seek/reset
-- Decouple app integration through an adapter boundary
 
 ---
 

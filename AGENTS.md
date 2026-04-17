@@ -10,19 +10,32 @@ The long-term goal is to evolve this fork into a maintained RoughCut-owned brows
 
 ## Current phase
 
-We are in the stabilization phase.
+Stabilisation is complete (v0.54.0-roughcut.7.1). We are now in the hardening and integration phase.
 
-Priority:
-- preserve current engine behavior where possible
-- fix playback and lifecycle reliability issues
-- keep API changes minimal
-- avoid premature modernization during the first stabilization patch
+Current version: `0.54.0-roughcut.7.1` on `main` branch.
+
+What has shipped:
+
+- Vite 8, Vitest 4, Playwright, ESLint 10, Husky, GitHub Actions CI
+- Full TypeScript migration (strict mode, 186 tests)
+- Engine fixes: stall recovery, seek debounce, reset/cleanup, end-of-track determinism
+- Cache init and play() error hardening
+- Public API surface defined
+- Published to GitHub Packages as `@recallatk/videocontext`
+
+Priority now:
+
+- verify stability in the RoughCut app under real usage
+- expand integration test coverage
+- define adapter boundary for app integration
+- reduce remaining `any` type warnings
 
 ## RoughCut integration context
 
 The RoughCut application currently uses VideoContext in its preview player.
 
 Important integration files in the app repo:
+
 - `src/context/video-player-context.tsx`
 - `src/context/video-context-functions.ts`
 - `src/app/(authenticated)/project/[projectId]/preview/preview-content.tsx`
@@ -31,21 +44,23 @@ The app already "makes it work", and this fork exists to reduce fragility and im
 
 ## Immediate problems to address
 
-Focus the first internal release on:
-- play/pause AbortError behavior
-- media element cache init behavior
-- reset and callback cleanup
-- rapid interaction stability
-- deterministic seek/end-of-track behavior
+These were addressed in the stabilisation releases (v3.1–v7.1):
+
+- ~~play/pause AbortError behavior~~ — fixed in v7.0
+- ~~media element cache init behavior~~ — fixed in v7.0
+- ~~reset and callback cleanup~~ — fixed in v3.1
+- ~~rapid interaction stability~~ — tested in v3.1
+- ~~deterministic seek/end-of-track behavior~~ — fixed in v3.4
 
 ## Non-goals for the first internal release
 
-Do not include these in the first stabilization release:
-- full TypeScript migration
-- build system rewrite
-- API redesign
-- application UI concerns
-- Convex or app-side state ownership issues
+These constraints applied during stabilisation and have been resolved:
+
+- ~~full TypeScript migration~~ — completed in v4.0–v4.4, strict mode in v6.1
+- ~~build system rewrite~~ — Vite 8 in v3.1
+- ~~API redesign~~ — public API defined in v5.0
+- application UI concerns — still out of scope for this repo
+- Convex or app-side state ownership issues — still out of scope for this repo
 
 ## Working approach
 
@@ -56,9 +71,9 @@ Do not include these in the first stabilization release:
 
 ## Modernization direction
 
-After stabilization:
-- introduce stronger tests
-- define a RoughCut-supported public API
-- migrate to TypeScript gradually
-- modernize build and test tooling
-- decouple app integration through an adapter boundary
+Stabilisation and modernisation through Phase 7 are complete. Next:
+
+- expand integration test coverage for cache lifecycle under rapid seek/reset
+- define adapter boundary for app integration
+- reduce remaining `@typescript-eslint/no-explicit-any` warnings (149 remaining)
+- see `docs/roadmap.md` for full phase breakdown
