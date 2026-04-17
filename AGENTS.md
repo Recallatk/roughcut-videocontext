@@ -1,18 +1,18 @@
 # AGENTS.md
 
-This repository is RoughCut's internal fork of VideoContext.
+This repository is the maintained fork of VideoContext, published as `@videocontext/core`.
 
 ## Purpose
 
-The short-term goal is to stabilize the existing engine for RoughCut's preview player.
+The short-term goal is to stabilize the existing engine for production use.
 
-The long-term goal is to evolve this fork into a maintained RoughCut-owned browser video-composition engine.
+The long-term goal is to evolve this fork into a maintained, community-friendly browser video-composition engine.
 
 ## Current phase
 
-Stabilisation is complete (v0.54.0-roughcut.7.1). We are now in the hardening and integration phase.
+Stabilisation and public release are complete (v0.55.0). We are now in the hardening and integration phase.
 
-Current version: `0.54.0-roughcut.7.1` on `main` branch.
+Current version: `0.55.0` on `main` branch.
 
 What has shipped:
 
@@ -21,18 +21,18 @@ What has shipped:
 - Engine fixes: stall recovery, seek debounce, reset/cleanup, end-of-track determinism
 - Cache init and play() error hardening
 - Public API surface defined
-- Published to GitHub Packages as `@recallatk/videocontext`
+- Published to public npm as `@videocontext/core`
 
 Priority now:
 
-- verify stability in the RoughCut app under real usage
+- verify stability under real usage
 - expand integration test coverage
 - define adapter boundary for app integration
 - reduce remaining `any` type warnings
 
-## RoughCut integration context
+## Integration context
 
-The RoughCut application currently uses VideoContext in its preview player.
+The primary consumer application uses VideoContext in its preview player.
 
 Important integration files in the app repo:
 
@@ -64,9 +64,9 @@ These constraints applied during stabilisation and have been resolved:
 
 ## Working approach
 
-1. Add regression tests for RoughCut-critical playback behavior.
+1. Add regression tests for critical playback behavior.
 2. Make a narrow stabilization patch.
-3. Verify against the RoughCut app.
+3. Verify against the consumer app.
 4. Only then begin modernization in separate phases.
 
 ## Modernization direction

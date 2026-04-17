@@ -300,4 +300,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow.
 [Apache-2.0](LICENSE)
 
 Originally created by [Matthew Shotton](mailto:matthew.shotton@bbc.co.uk) at BBC R&D.
-Maintained by [RoughCut (Recallatk)](https://github.com/Recallatk).
+Maintained by the [@videocontext](https://github.com/Recallatk/roughcut-videocontext) contributors.
