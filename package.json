@@ -2,7 +2,7 @@
     "name": "@recallatk/videocontext",
     "version": "0.54.0-roughcut.7.1",
     "type": "module",
-    "description": "A WebGL & HTML5 graph based video composition library",
+    "description": "A WebGL & HTML5 graph-based video composition engine. Maintained fork of BBC VideoContext.",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Recallatk/roughcut-videocontext.git"
@@ -16,16 +16,22 @@
     },
     "keywords": [
         "video",
-        "context",
         "composition",
         "timeline",
+        "webgl",
         "html5",
-        "webgl"
+        "browser",
+        "effects",
+        "transitions"
     ],
     "contributors": [
         {
             "name": "Matthew Shotton",
             "email": "matthew.shotton@bbc.co.uk"
+        },
+        {
+            "name": "RoughCut (Recallatk)",
+            "url": "https://github.com/Recallatk"
         }
     ],
     "scripts": {
