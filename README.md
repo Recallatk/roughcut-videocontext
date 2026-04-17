@@ -14,13 +14,13 @@ Web Audio API.
 ## Install
 
 ```sh
-npm install @recallatk/videocontext
+npm install @videocontext/core
 ```
 
 ## Quick start
 
 ```js
-import VideoContext from "@recallatk/videocontext";
+import VideoContext from "@videocontext/core";
 
 const canvas = document.getElementById("canvas");
 const ctx = new VideoContext(canvas);
@@ -49,12 +49,12 @@ Pass an options object as the second argument to the constructor:
 
 ```js
 const ctx = new VideoContext(canvas, {
-    manualUpdate: false,          // drive updates yourself via ctx.update()
-    endOnLastSourceEnd: true,     // auto-pause when the last source ends
-    useVideoElementCache: true,   // reuse <video> elements
-    videoElementCacheSize: 6,     // how many to keep pooled
-    stallTimeout: 3000,           // ms before a stalled source is skipped
-    seekDebounce: 200,            // ms debounce for seek operations
+    manualUpdate: false, // drive updates yourself via ctx.update()
+    endOnLastSourceEnd: true, // auto-pause when the last source ends
+    useVideoElementCache: true, // reuse <video> elements
+    videoElementCacheSize: 6, // how many to keep pooled
+    stallTimeout: 3000, // ms before a stalled source is skipped
+    seekDebounce: 200 // ms debounce for seek operations
 });
 ```
 
@@ -112,7 +112,16 @@ For example, an HLS source:
 import Hls from "hls.js";
 
 class HLSNode extends VideoContext.NODES.VideoNode {
-    constructor(src, gl, renderGraph, currentTime, playbackRate, sourceOffset, preloadTime, hlsOptions = {}) {
+    constructor(
+        src,
+        gl,
+        renderGraph,
+        currentTime,
+        playbackRate,
+        sourceOffset,
+        preloadTime,
+        hlsOptions = {}
+    ) {
         const video = document.createElement("video");
         super(video, gl, renderGraph, currentTime, playbackRate, sourceOffset, preloadTime);
         this.hls = new Hls(hlsOptions);
@@ -135,10 +144,7 @@ class HLSNode extends VideoContext.NODES.VideoNode {
     }
 }
 
-const hlsNode = ctx.customSourceNode(
-    HLSNode,
-    "https://example.com/stream.m3u8"
-);
+const hlsNode = ctx.customSourceNode(HLSNode, "https://example.com/stream.m3u8");
 hlsNode.start(0);
 hlsNode.stop(60);
 hlsNode.connect(ctx.destination);
@@ -187,10 +193,10 @@ const monochromeDefinition = {
             gl_FragColor = color;
         }`,
     properties: {
-        inputMix:  { type: "uniform", value: [0.4, 0.6, 0.2] },
-        outputMix: { type: "uniform", value: [1.0, 1.0, 1.0] },
+        inputMix: { type: "uniform", value: [0.4, 0.6, 0.2] },
+        outputMix: { type: "uniform", value: [1.0, 1.0, 1.0] }
     },
-    inputs: ["u_image"],
+    inputs: ["u_image"]
 };
 ```
 
@@ -214,7 +220,7 @@ Inputs can be connected by name or index:
 
 ```js
 videoNode1.connect(crossfade, "image_a"); // by name
-videoNode2.connect(crossfade, 1);         // by index
+videoNode2.connect(crossfade, 1); // by index
 ```
 
 ### CompositingNode
@@ -236,12 +242,12 @@ combine.connect(ctx.destination);
 
 ```js
 const effectDefinition = {
-    title: "",            // Effect name
-    description: "",      // What it does
-    vertexShader: "",     // GLSL vertex shader
-    fragmentShader: "",   // GLSL fragment shader
-    properties: {},       // Uniforms exposed as JS properties
-    inputs: ["u_image"],  // sampler2D uniform names for texture inputs
+    title: "", // Effect name
+    description: "", // What it does
+    vertexShader: "", // GLSL vertex shader
+    fragmentShader: "", // GLSL fragment shader
+    properties: {}, // Uniforms exposed as JS properties
+    inputs: ["u_image"] // sampler2D uniform names for texture inputs
 };
 ```
 
@@ -249,29 +255,29 @@ See [AdvancedExamples.md](AdvancedExamples.md) for more complex usage patterns.
 
 ## Built-in definitions
 
-| Name | Type |
-|------|------|
-| `CROSSFADE` | transition |
-| `DREAMFADE` | transition |
-| `TOCOLORANDBACKFADE` | transition |
-| `HORIZONTALWIPE` | transition |
-| `VERTICALWIPE` | transition |
-| `RANDOMDISSOLVE` | transition |
-| `STARWIPE` | transition |
-| `STATICDISSOLVE` | transition |
-| `STATICEFFECT` | effect |
-| `MONOCHROME` | effect |
-| `HORIZONTAL_BLUR` | effect |
-| `VERTICAL_BLUR` | effect |
-| `OPACITY` | effect |
-| `CROP` | effect |
-| `COLORTHRESHOLD` | effect |
-| `COMBINE` | compositing |
-| `AAF_VIDEO_CROP` | effect |
-| `AAF_VIDEO_FLIP` | effect |
-| `AAF_VIDEO_FLOP` | effect |
-| `AAF_VIDEO_POSITION` | effect |
-| `AAF_VIDEO_SCALE` | effect |
+| Name                 | Type        |
+| -------------------- | ----------- |
+| `CROSSFADE`          | transition  |
+| `DREAMFADE`          | transition  |
+| `TOCOLORANDBACKFADE` | transition  |
+| `HORIZONTALWIPE`     | transition  |
+| `VERTICALWIPE`       | transition  |
+| `RANDOMDISSOLVE`     | transition  |
+| `STARWIPE`           | transition  |
+| `STATICDISSOLVE`     | transition  |
+| `STATICEFFECT`       | effect      |
+| `MONOCHROME`         | effect      |
+| `HORIZONTAL_BLUR`    | effect      |
+| `VERTICAL_BLUR`      | effect      |
+| `OPACITY`            | effect      |
+| `CROP`               | effect      |
+| `COLORTHRESHOLD`     | effect      |
+| `COMBINE`            | compositing |
+| `AAF_VIDEO_CROP`     | effect      |
+| `AAF_VIDEO_FLIP`     | effect      |
+| `AAF_VIDEO_FLOP`     | effect      |
+| `AAF_VIDEO_POSITION` | effect      |
+| `AAF_VIDEO_SCALE`    | effect      |
 
 ## Development
 

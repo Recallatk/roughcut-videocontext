@@ -8,6 +8,17 @@ Entries at `0.54.0` and below are from the upstream project.
 
 ---
 
+### 0.55.0 (2026-04)
+
+#### Public release — rename and registry switch
+
+- Renamed package from `@recallatk/videocontext` to `@videocontext/core`
+- Switched publishConfig from GitHub Packages to public npm registry
+- Phase 8 cleanup: removed dead config files, stale docs, updated metadata, rewrote README
+- 186 tests passing, 0 vulnerabilities, TypeScript strict
+
+---
+
 ### 0.54.0-roughcut.7.1 (2026-04)
 
 #### Bugfix — \_seek regression from TS migration
