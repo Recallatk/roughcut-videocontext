@@ -2,13 +2,13 @@
 
 Thanks for your interest in contributing to **VideoContext**!
 
-This is RoughCut's maintained fork of the original [BBC VideoContext](https://github.com/bbc/VideoContext). We welcome bug reports, documentation improvements, and code contributions.
+This is a maintained fork of the original [BBC VideoContext](https://github.com/bbc/VideoContext). We welcome bug reports, documentation improvements, and code contributions.
 
 ## Getting started
 
 ```bash
 git clone https://github.com/Recallatk/roughcut-videocontext.git
-cd roughcut-videocontext
+cd roughcut-videocontext  # or your fork
 npm install
 npm test          # run unit tests
 npm run build     # build dist/
@@ -137,7 +137,7 @@ a project may be further defined and clarified by project maintainers.
 ### Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at change.me@recallatk.com. All
+reported by contacting the project team at videocontext-conduct@recallatk.com. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.

@@ -42,5 +42,5 @@
 
 ### Phase 9: App adapter layer
 
-- Define adapter boundary between VideoContext engine and RoughCut app
+- Define adapter boundary between VideoContext engine and consumer apps
 - Reduce direct dependence on internal engine state from app code
