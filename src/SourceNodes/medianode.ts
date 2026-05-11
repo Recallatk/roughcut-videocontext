@@ -1,6 +1,10 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
 import SourceNode, { SOURCENODESTATE } from "./sourcenode";
 
+const _rvfcSupported =
+    typeof HTMLVideoElement !== "undefined" &&
+    "requestVideoFrameCallback" in HTMLVideoElement.prototype;
+
 class MediaNode extends SourceNode {
     _preloadTime: number;
     _sourceOffset: number;
@@ -13,6 +17,8 @@ class MediaNode extends SourceNode {
     _isElementPlaying: boolean;
     _loadTriggered!: boolean;
     _elementType!: string;
+    _hasNewFrame: boolean;
+    _rvfcHandle: number | null;
 
     /**
      * Initialise an instance of a MediaNode.
@@ -39,6 +45,8 @@ class MediaNode extends SourceNode {
         this._attributes = Object.assign({ volume: 1.0 }, attributes);
         this._loopElement = false;
         this._isElementPlaying = false;
+        this._hasNewFrame = true;
+        this._rvfcHandle = null;
         if (this._attributes.loop) {
             this._loopElement = this._attributes.loop;
         }
@@ -209,7 +217,34 @@ class MediaNode extends SourceNode {
         }
     }
 
+    _cancelVideoFrameCallback() {
+        if (this._rvfcHandle !== null && this._element) {
+            this._element.cancelVideoFrameCallback(this._rvfcHandle);
+        }
+        this._rvfcHandle = null;
+    }
+
+    _registerVideoFrameCallback() {
+        if (
+            !_rvfcSupported ||
+            this._elementType !== "video" ||
+            !this._element ||
+            this._rvfcHandle !== null
+        ) {
+            return;
+        }
+        this._rvfcHandle = this._element.requestVideoFrameCallback(() => {
+            this._hasNewFrame = true;
+            this._rvfcHandle = null;
+            // Re-register for the next frame while still playing
+            if (this._state === SOURCENODESTATE.playing) {
+                this._registerVideoFrameCallback();
+            }
+        });
+    }
+
     _unload() {
+        this._cancelVideoFrameCallback();
         super._unload();
         if (this._isResponsibleForElementLifeCycle && this._element !== undefined) {
             this._element.removeAttribute("src");
@@ -227,11 +262,14 @@ class MediaNode extends SourceNode {
         // reset class to initial state
         this._ready = false;
         this._isElementPlaying = false;
+        this._hasNewFrame = true;
         // For completeness. I couldn't find a path that required reuse of this._loadTriggered after _unload.
         this._loadTriggered = false;
     }
 
     _seek(time: number) {
+        this._cancelVideoFrameCallback();
+        this._hasNewFrame = true;
         super._seek(time);
         if (this.state === SOURCENODESTATE.playing || this.state === SOURCENODESTATE.paused) {
             if (this._element === undefined) this._load();
@@ -271,6 +309,7 @@ class MediaNode extends SourceNode {
             }
             if (!this._isElementPlaying) {
                 this._isElementPlaying = true; // set optimistically to prevent double-call
+                this._registerVideoFrameCallback();
                 this._element.play().catch((e: any) => {
                     // Always reset the flag — either we retry (AbortError) or we enter
                     // the error state.  Never leave _isElementPlaying stuck true.
@@ -293,6 +332,7 @@ class MediaNode extends SourceNode {
             }
             return true;
         } else if (this._state === SOURCENODESTATE.paused) {
+            this._cancelVideoFrameCallback();
             this._element.pause();
             this._isElementPlaying = false;
             return true;
@@ -316,6 +356,7 @@ class MediaNode extends SourceNode {
     }
 
     destroy() {
+        this._cancelVideoFrameCallback();
         if (this._element) this._element.pause();
         super.destroy();
     }

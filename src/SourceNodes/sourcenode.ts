@@ -27,6 +27,7 @@ class SourceNode extends GraphNode {
     _texture: WebGLTexture | null;
     _callbacks: Array<{ type: string; func: (...args: any[]) => void }>;
     _renderPaused: boolean;
+    _hasNewFrame: boolean | undefined;
 
     /**
      * Initialise an instance of a SourceNode.
@@ -414,7 +415,10 @@ class SourceNode extends GraphNode {
             this._renderPaused = true;
         }
         if (this._state === STATE.playing) {
-            if (triggerTextureUpdate) updateTexture(this._gl, this._texture, this._element);
+            if (triggerTextureUpdate && this._hasNewFrame !== false) {
+                updateTexture(this._gl, this._texture, this._element);
+                this._hasNewFrame = false;
+            }
             if (this._stretchPaused) {
                 this._stopTime += timeDelta;
             }
