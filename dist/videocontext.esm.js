@@ -360,12 +360,12 @@ var e = {
 	error: 5
 }, i = "SourceNode", a = class extends n {
 	constructor(e, t, n, a) {
-		super(t, n, [], !0), this._element = void 0, this._elementURL = void 0, this._isResponsibleForElementLifeCycle = !0, typeof e == "string" || window.MediaStream !== void 0 && e instanceof MediaStream ? this._elementURL = e : (this._element = e, this._isResponsibleForElementLifeCycle = !1), this._state = r.waiting, this._currentTime = a, this._startTime = NaN, this._stopTime = Infinity, this._ready = !1, this._loadCalled = !1, this._stretchPaused = !1, this._texture = A(t), t.texImage2D(t.TEXTURE_2D, 0, t.RGBA, 1, 1, 0, t.RGBA, t.UNSIGNED_BYTE, new Uint8Array([
+		super(t, n, [], !0), this._element = void 0, this._elementURL = void 0, this._isResponsibleForElementLifeCycle = !0, typeof e == "string" || window.MediaStream !== void 0 && e instanceof MediaStream ? this._elementURL = e : (this._element = e, this._isResponsibleForElementLifeCycle = !1), this._state = r.waiting, this._currentTime = a, this._startTime = NaN, this._stopTime = Infinity, this._ready = !1, this._loadCalled = !1, this._stretchPaused = !1, this._texture = k(t), t.texImage2D(t.TEXTURE_2D, 0, t.RGBA, 1, 1, 0, t.RGBA, t.UNSIGNED_BYTE, new Uint8Array([
 			0,
 			0,
 			0,
 			0
-		])), this._callbacks = [], this._renderPaused = !1, this._displayName = i;
+		])), this._callbacks = [], this._renderPaused = !1, this._usesVideoFrameCallback = !1, this._displayName = i;
 	}
 	get state() {
 		return this._state;
@@ -424,7 +424,7 @@ var e = {
 		return this._stopTime;
 	}
 	_seek(e) {
-		this._renderPaused = !1, this._triggerCallbacks("seek", e), this._state !== r.waiting && (e < this._startTime && (M(this._gl, this._texture), this._state = r.sequenced), e >= this._startTime && this._state !== r.paused && (this._state = r.playing), e >= this._stopTime && (M(this._gl, this._texture), this._triggerCallbacks("ended"), this._state = r.ended), this._currentTime = e);
+		this._renderPaused = !1, this._triggerCallbacks("seek", e), this._state !== r.waiting && (e < this._startTime && (j(this._gl, this._texture), this._state = r.sequenced), e >= this._startTime && this._state !== r.paused && (this._state = r.playing), e >= this._stopTime && (j(this._gl, this._texture), this._triggerCallbacks("ended"), this._state = r.ended), this._currentTime = e);
 	}
 	_pause() {
 		(this._state === r.playing || this._currentTime === 0 && this._startTime === 0) && (this._triggerCallbacks("pause"), this._state = r.paused, this._renderPaused = !1);
@@ -441,7 +441,7 @@ var e = {
 	_update(e, t = !0) {
 		this._rendered = !0;
 		let n = e - this._currentTime;
-		return this._currentTime = e, this._state === r.waiting || this._state === r.ended || this._state === r.error ? !1 : (this._triggerCallbacks("render", e), e < this._startTime && (M(this._gl, this._texture), this._state = r.sequenced), e >= this._startTime && this._state !== r.paused && this._state !== r.error && (this._state !== r.playing && this._triggerCallbacks("play"), this._state = r.playing), e >= this._stopTime && (M(this._gl, this._texture), this._triggerCallbacks("ended"), this._state = r.ended), this._element === void 0 || this._ready === !1 ? !0 : (!this._renderPaused && this._state === r.paused && (t && j(this._gl, this._texture, this._element), this._renderPaused = !0), this._state === r.playing && (t && this._hasNewFrame !== !1 && (j(this._gl, this._texture, this._element), this._hasNewFrame = !1), this._stretchPaused && (this._stopTime += n)), !0));
+		return this._currentTime = e, this._state === r.waiting || this._state === r.ended || this._state === r.error ? !1 : (this._triggerCallbacks("render", e), e < this._startTime && (j(this._gl, this._texture), this._state = r.sequenced), e >= this._startTime && this._state !== r.paused && this._state !== r.error && (this._state !== r.playing && this._triggerCallbacks("play"), this._state = r.playing), e >= this._stopTime && (j(this._gl, this._texture), this._triggerCallbacks("ended"), this._state = r.ended), this._element === void 0 || this._ready === !1 ? !0 : (!this._renderPaused && this._state === r.paused && (t && (A(this._gl, this._texture, this._element), this._usesVideoFrameCallback && (this._hasNewFrame = !1)), this._renderPaused = !0), this._state === r.playing && (t && (!this._usesVideoFrameCallback || this._hasNewFrame === !0) && (A(this._gl, this._texture, this._element), this._usesVideoFrameCallback && (this._hasNewFrame = !1)), this._stretchPaused && (this._stopTime += n)), !0));
 	}
 	clearTimelineState() {
 		this._startTime = NaN, this._stopTime = Infinity, this._state = r.waiting;
@@ -449,7 +449,7 @@ var e = {
 	destroy() {
 		this._unload(), super.destroy(), this.unregisterCallback(), delete this._element, this._elementURL = void 0, this._state = r.waiting, this._currentTime = 0, this._startTime = NaN, this._stopTime = Infinity, this._ready = !1, this._loadCalled = !1, this._gl?.deleteTexture(this._texture), this._texture = null;
 	}
-}, o = typeof HTMLVideoElement < "u" && "requestVideoFrameCallback" in HTMLVideoElement.prototype, s = class extends a {
+}, o = class extends a {
 	constructor(e, t, n, r, i = 1, a = 0, o = 4, s = void 0, c = {}) {
 		super(e, t, n, r), this._preloadTime = o, this._sourceOffset = a, this._globalPlaybackRate = i, this._mediaElementCache = s, this._playbackRate = 1, this._playbackRateUpdated = !0, this._attributes = Object.assign({ volume: 1 }, c), this._loopElement = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._rvfcHandle = null, this._attributes.loop && (this._loopElement = this._attributes.loop);
 	}
@@ -492,8 +492,12 @@ var e = {
 	_cancelVideoFrameCallback() {
 		this._rvfcHandle !== null && this._element && this._element.cancelVideoFrameCallback(this._rvfcHandle), this._rvfcHandle = null;
 	}
+	_canUseVideoFrameCallback() {
+		let e = typeof MediaStream < "u" && (this._elementURL instanceof MediaStream || this._element?.srcObject instanceof MediaStream);
+		return this._elementType === "video" && !e && this._element !== void 0 && typeof this._element.requestVideoFrameCallback == "function" && typeof this._element.cancelVideoFrameCallback == "function";
+	}
 	_registerVideoFrameCallback() {
-		!o || this._elementType !== "video" || !this._element || this._rvfcHandle !== null || (this._rvfcHandle = this._element.requestVideoFrameCallback(() => {
+		this._usesVideoFrameCallback = this._canUseVideoFrameCallback(), !(!this._usesVideoFrameCallback || this._rvfcHandle !== null) && (this._rvfcHandle = this._element.requestVideoFrameCallback(() => {
 			this._hasNewFrame = !0, this._rvfcHandle = null, this._state === r.playing && this._registerVideoFrameCallback();
 		}));
 	}
@@ -503,19 +507,19 @@ var e = {
 			for (let e in this._attributes) this._element.removeAttribute(e);
 			this._mediaElementCache && this._mediaElementCache.unlinkNodeFromElement(this._element), this._element = void 0, this._mediaElementCache || delete this._element;
 		}
-		this._ready = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._loadTriggered = !1;
+		this._ready = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._usesVideoFrameCallback = !1, this._loadTriggered = !1;
 	}
 	_seek(e) {
 		if (this._cancelVideoFrameCallback(), this._hasNewFrame = !0, super._seek(e), this.state === r.playing || this.state === r.paused) {
 			this._element === void 0 && this._load();
 			let e = this._currentTime - this._startTime + this._sourceOffset;
-			this._element.currentTime = e, this._ready = !1;
+			this._element.currentTime = e, this._ready = !1, this.state === r.playing && this._registerVideoFrameCallback();
 		}
 		(this._state === r.sequenced || this._state === r.ended) && this._element !== void 0 && this._unload();
 	}
 	_update(e, t = !0) {
 		return super._update(e, t), this._element !== void 0 && this._element.ended && (this._state = r.ended, this._triggerCallbacks("ended")), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing ? (this._playbackRateUpdated &&= (this._element.playbackRate = this._globalPlaybackRate * this._playbackRate, !1), this._isElementPlaying || (this._isElementPlaying = !0, this._registerVideoFrameCallback(), this._element.play().catch((e) => {
-			this._isElementPlaying = !1, e.name !== "AbortError" && (console.debug("MediaNode play() failed:", e), this._state = r.error, this._ready = !0, this._triggerCallbacks("error"));
+			this._cancelVideoFrameCallback(), this._isElementPlaying = !1, e.name !== "AbortError" && (console.debug("MediaNode play() failed:", e), this._state = r.error, this._ready = !0, this._triggerCallbacks("error"));
 		}), this._stretchPaused && this._element.pause()), !0) : this._state === r.paused ? (this._cancelVideoFrameCallback(), this._element.pause(), this._isElementPlaying = !1, !0) : this._state === r.ended && this._element !== void 0 ? (this._element.pause(), this._isElementPlaying && this._unload(), !1) : !1;
 	}
 	clearTimelineState() {
@@ -524,13 +528,13 @@ var e = {
 	destroy() {
 		this._cancelVideoFrameCallback(), this._element && this._element.pause(), super.destroy();
 	}
-}, c = "VideoNode", l = class extends s {
-	constructor(e, t, n, r, i, a, o, s, l) {
-		super(e, t, n, r, i, a, o, s, l), this._displayName = c, this._elementType = "video";
+}, s = "VideoNode", c = class extends o {
+	constructor(e, t, n, r, i, a, o, c, l) {
+		super(e, t, n, r, i, a, o, c, l), this._displayName = s, this._elementType = "video";
 	}
-}, u = "CanvasNode", d = class extends a {
+}, l = "CanvasNode", u = class extends a {
 	constructor(e, t, n, r, i = 4) {
-		super(e, t, n, r), this._preloadTime = i, this._displayName = u;
+		super(e, t, n, r), this._preloadTime = i, this._displayName = l;
 	}
 	_load() {
 		super._load(), this._ready = !0, this._triggerCallbacks("loaded");
@@ -544,9 +548,9 @@ var e = {
 	_update(e, t = !0) {
 		return super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused ? !0 : (this._state === r.ended && this._element !== void 0 && this._unload(), !1);
 	}
-}, f = "CanvasNode", p = class extends a {
+}, d = "CanvasNode", f = class extends a {
 	constructor(e, t, n, r, i = 4, a = {}) {
-		super(e, t, n, r), this._preloadTime = i, this._attributes = a, this._textureUploaded = !1, this._displayName = f;
+		super(e, t, n, r), this._preloadTime = i, this._attributes = a, this._textureUploaded = !1, this._displayName = d;
 	}
 	get elementURL() {
 		return this._elementURL;
@@ -579,17 +583,17 @@ var e = {
 	_update(e, t = !0) {
 		return this._textureUploaded ? super._update(e, !1) : super._update(e), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing || this._state === r.paused ? !0 : (this._state === r.ended && this._image !== void 0 && this._unload(), !1);
 	}
-}, m = class extends Error {
+}, p = class extends Error {
 	constructor(e) {
 		super(e), this.name = "ConnectionException";
 	}
-}, h = class extends Error {
+}, m = class extends Error {
 	constructor(e) {
 		super(e), this.name = "RenderException";
 	}
-}, g = "ProcessingNode", _ = class extends n {
+}, h = "ProcessingNode", g = class extends n {
 	constructor(e, t, n, r, i) {
-		super(e, t, r, i), this._vertexShader = O(e, n.vertexShader, e.VERTEX_SHADER), this._fragmentShader = O(e, n.fragmentShader, e.FRAGMENT_SHADER), this._definition = n, this._properties = {};
+		super(e, t, r, i), this._vertexShader = D(e, n.vertexShader, e.VERTEX_SHADER), this._fragmentShader = D(e, n.fragmentShader, e.FRAGMENT_SHADER), this._definition = n, this._properties = {};
 		for (let e in n.properties) {
 			let t = n.properties[e].value;
 			Object.prototype.toString.call(t) === "[object Array]" && (t = n.properties[e].value.slice());
@@ -599,7 +603,7 @@ var e = {
 				value: t
 			};
 		}
-		this._shaderInputsTextureUnitMapping = [], this._maxTextureUnits = e.getParameter(e.MAX_TEXTURE_IMAGE_UNITS), this._boundTextureUnits = 0, this._texture = A(e), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, e.canvas.width, e.canvas.height, 0, e.RGBA, e.UNSIGNED_BYTE, null), this._program = k(e, this._vertexShader, this._fragmentShader), this._framebuffer = e.createFramebuffer(), e.bindFramebuffer(e.FRAMEBUFFER, this._framebuffer), e.framebufferTexture2D(e.FRAMEBUFFER, e.COLOR_ATTACHMENT0, e.TEXTURE_2D, this._texture, 0), e.bindFramebuffer(e.FRAMEBUFFER, null);
+		this._shaderInputsTextureUnitMapping = [], this._maxTextureUnits = e.getParameter(e.MAX_TEXTURE_IMAGE_UNITS), this._boundTextureUnits = 0, this._texture = k(e), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, e.canvas.width, e.canvas.height, 0, e.RGBA, e.UNSIGNED_BYTE, null), this._program = O(e, this._vertexShader, this._fragmentShader), this._framebuffer = e.createFramebuffer(), e.bindFramebuffer(e.FRAMEBUFFER, this._framebuffer), e.framebufferTexture2D(e.FRAMEBUFFER, e.COLOR_ATTACHMENT0, e.TEXTURE_2D, this._texture, 0), e.bindFramebuffer(e.FRAMEBUFFER, null);
 		for (let e in this._properties) Object.defineProperty(this, e, {
 			get: function() {
 				return this._properties[e].value;
@@ -608,13 +612,13 @@ var e = {
 				this._properties[e].value = t;
 			}
 		});
-		for (let t in this._properties) if (this._properties[t].value instanceof Image && (this._properties[t].texture = A(e), this._properties[t].textureUnit = e.TEXTURE0 + this._boundTextureUnits, this._properties[t].textureUnitIndex = this._boundTextureUnits, this._boundTextureUnits += 1, this._boundTextureUnits > this._maxTextureUnits)) throw new h("Trying to bind more than available textures units to shader");
+		for (let t in this._properties) if (this._properties[t].value instanceof Image && (this._properties[t].texture = k(e), this._properties[t].textureUnit = e.TEXTURE0 + this._boundTextureUnits, this._properties[t].textureUnitIndex = this._boundTextureUnits, this._boundTextureUnits += 1, this._boundTextureUnits > this._maxTextureUnits)) throw new m("Trying to bind more than available textures units to shader");
 		for (let t of n.inputs) if (this._shaderInputsTextureUnitMapping.push({
 			name: t,
 			textureUnit: e.TEXTURE0 + this._boundTextureUnits,
 			textureUnitIndex: this._boundTextureUnits,
 			location: e.getUniformLocation(this._program, t)
-		}), this._boundTextureUnits += 1, this._boundTextureUnits > this._maxTextureUnits) throw new h("Trying to bind more than available textures units to shader");
+		}), this._boundTextureUnits += 1, this._boundTextureUnits > this._maxTextureUnits) throw new m("Trying to bind more than available textures units to shader");
 		for (let e in this._properties) this._properties[e].type === "uniform" && (this._properties[e].location = this._gl.getUniformLocation(this._program, e));
 		this._currentTimeLocation = this._gl.getUniformLocation(this._program, "currentTime"), this._currentTime = 0;
 		let a = e.getAttribLocation(this._program, "a_position"), o = e.createBuffer();
@@ -633,7 +637,7 @@ var e = {
 			0
 		]), e.STATIC_DRAW);
 		let s = e.getAttribLocation(this._program, "a_texCoord");
-		e.enableVertexAttribArray(s), e.vertexAttribPointer(s, 2, e.FLOAT, !1, 0, 0), this._displayName = g;
+		e.enableVertexAttribArray(s), e.vertexAttribPointer(s, 2, e.FLOAT, !1, 0, 0), this._displayName = h;
 	}
 	setProperty(e, t) {
 		this._properties[e].value = t;
@@ -664,20 +668,20 @@ var e = {
 				else if (Object.prototype.toString.call(n) === "[object Array]") n.length === 1 ? e.uniform1fv(i, n) : n.length === 2 ? e.uniform2fv(i, n) : n.length === 3 ? e.uniform3fv(i, n) : n.length === 4 ? e.uniform4fv(i, n) : console.debug("Shader parameter", t, "is too long an array:", n);
 				else if (n instanceof Image) {
 					let r = this._properties[t].texture, a = this._properties[t].textureUnit, o = this._properties[t].textureUnit;
-					j(e, r, n), e.activeTexture(a), e.uniform1i(i, o), e.bindTexture(e.TEXTURE_2D, r);
+					A(e, r, n), e.activeTexture(a), e.uniform1i(i, o), e.bindTexture(e.TEXTURE_2D, r);
 				}
 			}
 		}
 	}
-}, v = "precision mediump float;\nuniform sampler2D u_image;\nvarying vec2 v_texCoord;\nvarying float v_progress;\nvoid main(){\n    gl_FragColor = texture2D(u_image, v_texCoord);\n}\n", y = "attribute vec2 a_position;\nattribute vec2 a_texCoord;\nvarying vec2 v_texCoord;\nvoid main() {\n    gl_Position = vec4(vec2(2.0,2.0)*a_position-vec2(1.0, 1.0), 0.0, 1.0);\n    v_texCoord = a_texCoord;\n}\n", b = "DestinationNode", x = class extends _ {
+}, _ = "precision mediump float;\nuniform sampler2D u_image;\nvarying vec2 v_texCoord;\nvarying float v_progress;\nvoid main(){\n    gl_FragColor = texture2D(u_image, v_texCoord);\n}\n", v = "attribute vec2 a_position;\nattribute vec2 a_texCoord;\nvarying vec2 v_texCoord;\nvoid main() {\n    gl_Position = vec4(vec2(2.0,2.0)*a_position-vec2(1.0, 1.0), 0.0, 1.0);\n    v_texCoord = a_texCoord;\n}\n", y = "DestinationNode", b = class extends g {
 	constructor(e, t) {
 		let n = {
-			fragmentShader: v,
-			vertexShader: y,
+			fragmentShader: _,
+			vertexShader: v,
 			properties: {},
 			inputs: ["u_image"]
 		};
-		super(e, t, n, n.inputs, !1), this._displayName = b;
+		super(e, t, n, n.inputs, !1), this._displayName = y;
 	}
 	_render() {
 		let e = this._gl;
@@ -688,15 +692,15 @@ var e = {
 			e.drawArrays(e.TRIANGLES, 0, 6);
 		});
 	}
-}, S = "EffectNode", C = class extends _ {
+}, x = "EffectNode", S = class extends g {
 	constructor(e, t, n) {
-		let r = A(e);
+		let r = k(e);
 		e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, 1, 1, 0, e.RGBA, e.UNSIGNED_BYTE, new Uint8Array([
 			0,
 			0,
 			0,
 			0
-		])), super(e, t, n, n.inputs, !0), this._placeholderTexture = r, this._displayName = S;
+		])), super(e, t, n, n.inputs, !0), this._placeholderTexture = r, this._displayName = x;
 	}
 	_render() {
 		let e = this._gl;
@@ -708,11 +712,11 @@ var e = {
 		}
 		e.drawArrays(e.TRIANGLES, 0, 6), e.bindFramebuffer(e.FRAMEBUFFER, null);
 	}
-}, w = "TransitionNode", T = class extends C {
+}, C = "TransitionNode", w = class extends S {
 	constructor(e, t, n) {
 		super(e, t, n), this._transitions = {}, this._initialPropertyValues = {};
 		for (let e in this._properties) this._initialPropertyValues[e] = this._properties[e].value;
-		this._displayName = w;
+		this._displayName = C;
 	}
 	_doesTransitionFitOnTimeline(e) {
 		if (this._transitions[e.property] === void 0) return !0;
@@ -776,15 +780,15 @@ var e = {
 			r || (this[t] = n);
 		}
 	}
-}, E = "CompositingNode", D = class extends _ {
+}, T = "CompositingNode", E = class extends g {
 	constructor(e, t, n) {
-		let r = A(e);
+		let r = k(e);
 		e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, 1, 1, 0, e.RGBA, e.UNSIGNED_BYTE, new Uint8Array([
 			0,
 			0,
 			0,
 			0
-		])), super(e, t, n, n.inputs, !1), this._placeholderTexture = r, this._displayName = E;
+		])), super(e, t, n, n.inputs, !1), this._placeholderTexture = r, this._displayName = T;
 	}
 	_render() {
 		let e = this._gl;
@@ -799,12 +803,12 @@ var e = {
 };
 //#endregion
 //#region src/utils.ts
-function O(e, t, n) {
+function D(e, t, n) {
 	let r = e.createShader(n);
 	if (e.shaderSource(r, t), e.compileShader(r), !e.getShaderParameter(r, e.COMPILE_STATUS)) throw "could not compile shader:" + e.getShaderInfoLog(r);
 	return r;
 }
-function k(e, t, n) {
+function O(e, t, n) {
 	let r = e.createProgram();
 	if (e.attachShader(r, t), e.attachShader(r, n), e.linkProgram(r), !e.getProgramParameter(r, e.LINK_STATUS)) throw {
 		error: 4,
@@ -815,14 +819,14 @@ function k(e, t, n) {
 	};
 	return r;
 }
-function A(e) {
+function k(e) {
 	let t = e.createTexture();
 	return e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_S, e.CLAMP_TO_EDGE), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_T, e.CLAMP_TO_EDGE), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MIN_FILTER, e.NEAREST), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MAG_FILTER, e.NEAREST), t;
 }
-function j(e, t, n) {
+function A(e, t, n) {
 	e && (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, e.RGBA, e.UNSIGNED_BYTE, n), t._isTextureCleared = !1);
 }
-function M(e, t) {
+function j(e, t) {
 	e && (t._isTextureCleared ||= (e.bindTexture(e.TEXTURE_2D, t), e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, !0), e.texImage2D(e.TEXTURE_2D, 0, e.RGBA, 1, 1, 0, e.RGBA, e.UNSIGNED_BYTE, new Uint8Array([
 		0,
 		0,
@@ -830,7 +834,7 @@ function M(e, t) {
 		0
 	])), !0));
 }
-function N() {
+function M() {
 	let e = /* @__PURE__ */ "adorable.alert.average.beautiful.blonde.bloody.blushing.bright.clean.clear.cloudy.colourful.concerned.crowded.curious.cute.dark.dirty.drab.distinct.dull.elegant.fancy.filthy.glamorous.gleaming.graceful.grotesque.homely.light.misty.motionless.muddy.plain.poised.quaint.scary.shiny.smoggy.sparkling.spotless.stormy.strange.ugly.unsightly.unusual".split("."), t = /* @__PURE__ */ "alive.brainy.broken.busy.careful.cautious.clever.crazy.damaged.dead.difficult.easy.fake.false.famous.forward.fragile.guilty.helpful.helpless.important.impossible.infamous.innocent.inquisitive.mad.modern.open.outgoing.outstanding.poor.powerful.puzzled.real.rich.right.robust.sane.scary.shy.sleepy.stupid.super.tame.thick.tired.wild.wrong".split("."), n = [
 		"manatee",
 		"gila monster",
@@ -857,13 +861,13 @@ function N() {
 	let a = r(e) + " " + r(t) + " " + r(n);
 	return a = i(a), a = a.replace(/ /g, "-"), a;
 }
-function P(e) {
+function N(e) {
 	return {
-		nodes: L(e),
-		videoContext: F(e)
+		nodes: I(e),
+		videoContext: P(e)
 	};
 }
-function F(e) {
+function P(e) {
 	return {
 		currentTime: e.currentTime,
 		duration: e.duration,
@@ -871,8 +875,8 @@ function F(e) {
 		playbackRate: e.playbackRate
 	};
 }
-var I = !1;
-function L(e) {
+var F = !1;
+function I(e) {
 	function t(e) {
 		let t = document.createElement("a");
 		return t.href = e, t.href;
@@ -898,7 +902,7 @@ function L(e) {
 	for (let e in r) a[r[e]] = e;
 	for (let n in e._sourceNodes) {
 		let r = e._sourceNodes[n], o = "source" + n, s;
-		r._isResponsibleForElementLifeCycle ? s = t(r._elementURL) : (I ||= (console.debug("Warning - Trying to export source created from an element not a URL. URL of export will be set to the elements src attribute and may be incorrect", r), !0), s = r.element.src);
+		r._isResponsibleForElementLifeCycle ? s = t(r._elementURL) : (F ||= (console.debug("Warning - Trying to export source created from an element not a URL. URL of export will be set to the elements src attribute and may be incorrect", r), !0), s = r.element.src);
 		let c = {
 			type: r.displayName,
 			url: s,
@@ -923,7 +927,7 @@ function L(e) {
 		inputs: n(e.destination, e)
 	}, i;
 }
-function R(t, n) {
+function L(t, n) {
 	let r = t.compositor(e.COMBINE);
 	for (let e of n) {
 		let n;
@@ -937,7 +941,7 @@ function R(t, n) {
 	}
 	return r;
 }
-var z = class {
+var R = class {
 	constructor() {
 		this._updateables = [], this._useWebworker = !1, this._active = !1, this._previousRAFTime = void 0, this._previousWorkerTime = void 0, this._webWorkerString = "            var running = false;            function tick(){                postMessage(Date.now());                if (running){                    setTimeout(tick, 1000/20);                }            }            self.addEventListener('message',function(msg){                var data = msg.data;                if (data === 'start'){                    running = true;                    tick();                }                if (data === 'stop') running = false;            });", this._webWorker = void 0;
 	}
@@ -986,26 +990,26 @@ var z = class {
 		t !== -1 && this._updateables.splice(t, 1);
 	}
 };
-function B({ src: e, srcObject: t }) {
+function z({ src: e, srcObject: t }) {
 	return !((e === "" || e === void 0) && t == null);
 }
 //#endregion
 //#region src/SourceNodes/audionode.ts
-var V = "AudioNode", H = class extends s {
+var B = "AudioNode", V = class extends o {
 	constructor(e, t, n, r, i, a, o, s, c) {
-		super(e, t, n, r, i, a, o, s, c), this._displayName = V, this._elementType = "audio";
+		super(e, t, n, r, i, a, o, s, c), this._displayName = B, this._elementType = "audio";
 	}
 	_update(e) {
 		return super._update(e, !1), !0;
 	}
-}, U = {
-	AudioNode: H,
-	CanvasNode: d,
-	ImageNode: p,
-	MediaNode: s,
+}, H = {
+	AudioNode: V,
+	CanvasNode: u,
+	ImageNode: f,
+	MediaNode: o,
 	SourceNode: a,
-	VideoNode: l
-}, W = class {
+	VideoNode: c
+}, U = class {
 	constructor() {
 		this.connections = [];
 	}
@@ -1051,7 +1055,7 @@ var V = "AudioNode", H = class extends s {
 		return !0;
 	}
 	registerConnection(e, t, n) {
-		if (t.inputs.length >= t.inputNames.length && t._limitConnections === !0) throw new m("Node has reached max number of inputs, can't connect");
+		if (t.inputs.length >= t.inputNames.length && t._limitConnections === !0) throw new p("Node has reached max number of inputs, can't connect");
 		if (t._limitConnections === !1 && this.getInputsForNode(t).includes(e) && (console.debug("WARNING - node connected mutliple times, removing previous connection"), this.unregisterConnection(e, t)), typeof n == "number") this.connections.push({
 			source: e,
 			type: "zIndex",
@@ -1064,7 +1068,7 @@ var V = "AudioNode", H = class extends s {
 			name: n,
 			destination: t
 		});
-		else throw new m("Port " + n + " is already connected to");
+		else throw new p("Port " + n + " is already connected to");
 		else {
 			let n = this.getZIndexInputsForNode(t), r = 0;
 			n.length > 0 && (r = n[n.length - 1].zIndex + 1), this.connections.push({
@@ -1104,7 +1108,7 @@ var V = "AudioNode", H = class extends s {
 		}
 		return t;
 	}
-}, G = class {
+}, W = class {
 	constructor(e = null) {
 		this._element = this._createElement(), this._node = e;
 	}
@@ -1127,18 +1131,18 @@ var V = "AudioNode", H = class extends s {
 	isPlaying() {
 		return this._node && this._node._state === r.playing;
 	}
-}, K = class {
+}, G = class {
 	constructor(e = 3) {
 		this._cacheItems = [], this._cacheItemsInitialised = !1;
-		for (let t = 0; t < e; t++) this._cacheItems.push(new G());
+		for (let t = 0; t < e; t++) this._cacheItems.push(new W());
 	}
 	init() {
 		this._cacheItemsInitialised ||= !0;
 	}
 	getElementAndLinkToNode(e) {
-		for (let t of this._cacheItems) if (!B(t.element)) return t.linkNode(e), t.element;
+		for (let t of this._cacheItems) if (!z(t.element)) return t.linkNode(e), t.element;
 		console.debug("No available video element in the cache, creating a new one. This may break mobile, make your initial cache larger.");
-		let t = new G(e);
+		let t = new W(e);
 		return this._cacheItems.push(t), this._cacheItemsInitialised = !1, t.element;
 	}
 	unlinkNodeFromElement(e) {
@@ -1149,16 +1153,16 @@ var V = "AudioNode", H = class extends s {
 	}
 	get unused() {
 		let e = 0;
-		for (let t of this._cacheItems) B(t.element) || (e += 1);
+		for (let t of this._cacheItems) z(t.element) || (e += 1);
 		return e;
 	}
-}, q = new z(), J = class t {
+}, K = new R(), q = class t {
 	constructor(e, n, { manualUpdate: r = !1, endOnLastSourceEnd: i = !0, useVideoElementCache: a = !0, videoElementCacheSize: o = 6, webglContextAttributes: s = {}, stallTimeout: c = 10, seekDebounce: l = 50 } = {}) {
 		if (this._canvas = e, this._endOnLastSourceEnd = i, this._gl = e.getContext("experimental-webgl", Object.assign({ preserveDrawingBuffer: !0 }, s, { alpha: !1 })), this._gl === null) {
 			console.error("Failed to intialise WebGL."), n && n();
 			return;
 		}
-		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new K(o)), this._id = this._canvas.id && typeof this._canvas.id == "string" ? e.id : N(), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new W(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new x(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || q.register(this);
+		this._useVideoElementCache = a, this._useVideoElementCache && (this._videoElementCache = new G(o)), this._id = this._canvas.id && typeof this._canvas.id == "string" ? e.id : M(), window.__VIDEOCONTEXT_REFS__ === void 0 && (window.__VIDEOCONTEXT_REFS__ = {}), window.__VIDEOCONTEXT_REFS__[this._id] = this, this._renderGraph = new U(), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._volume = 1, this._sourcesPlaying = void 0, this._destinationNode = new b(this._gl, this._renderGraph), this._stallStartTime = null, this._stallTimeout = c, this._seekDebounce = l, this._seekDebounceTimer = null, this._callbacks = /* @__PURE__ */ new Map(), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [], r || K.register(this);
 	}
 	get id() {
 		return this._id;
@@ -1231,7 +1235,7 @@ var V = "AudioNode", H = class extends s {
 		return this._playbackRate;
 	}
 	set volume(e) {
-		for (let t of this._sourceNodes) (t instanceof l || t instanceof H) && (t.volume = e);
+		for (let t of this._sourceNodes) (t instanceof c || t instanceof V) && (t.volume = e);
 		this._volume = e;
 	}
 	get volume() {
@@ -1244,27 +1248,27 @@ var V = "AudioNode", H = class extends s {
 		return console.debug("VideoContext - pausing"), this._state = t.STATE.PAUSED, !0;
 	}
 	video(e, t = 0, n = 4, r = {}) {
-		let i = new l(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._videoElementCache, r);
+		let i = new c(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._videoElementCache, r);
 		return this._sourceNodes.push(i), i;
 	}
 	audio(e, t = 0, n = 4, r = {}) {
-		let i = new H(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._videoElementCache, r);
+		let i = new V(e, this._gl, this._renderGraph, this._currentTime, this._playbackRate, t, n, this._videoElementCache, r);
 		return this._sourceNodes.push(i), i;
 	}
 	image(e, t = 4, n = {}) {
-		let r = new p(e, this._gl, this._renderGraph, this._currentTime, t, n);
+		let r = new f(e, this._gl, this._renderGraph, this._currentTime, t, n);
 		return this._sourceNodes.push(r), r;
 	}
 	canvas(e) {
-		let t = new d(e, this._gl, this._renderGraph, this._currentTime);
+		let t = new u(e, this._gl, this._renderGraph, this._currentTime);
 		return this._sourceNodes.push(t), t;
 	}
 	effect(e) {
-		let t = new C(this._gl, this._renderGraph, e);
+		let t = new S(this._gl, this._renderGraph, e);
 		return this._processingNodes.push(t), t;
 	}
 	compositor(e) {
-		let t = new D(this._gl, this._renderGraph, e);
+		let t = new E(this._gl, this._renderGraph, e);
 		return this._processingNodes.push(t), t;
 	}
 	customSourceNode(e, t, ...n) {
@@ -1272,7 +1276,7 @@ var V = "AudioNode", H = class extends s {
 		return this._sourceNodes.push(r), r;
 	}
 	transition(e) {
-		let t = new T(this._gl, this._renderGraph, e);
+		let t = new w(this._gl, this._renderGraph, e);
 		return this._processingNodes.push(t), t;
 	}
 	_isSourceNodeActive(e, t = this._currentTime) {
@@ -1329,13 +1333,13 @@ var V = "AudioNode", H = class extends s {
 				this._state === t.STATE.STALLED && i._isReady() && i._state === r.playing && i._pause(), this._state === t.STATE.PAUSED && i._pause(), this._state === t.STATE.PLAYING && i._play(), i._update(this._currentTime), (i._state === r.paused || i._state === r.playing) && (n = !0);
 			}
 			n !== this._sourcesPlaying && this._state === t.STATE.PLAYING && (n === !0 ? this._callCallbacks(t.EVENTS.CONTENT) : this._callCallbacks(t.EVENTS.NOCONTENT), this._sourcesPlaying = n);
-			let i = [], a = this._renderGraph.connections.slice(), o = W.getInputlessNodes(a);
+			let i = [], a = this._renderGraph.connections.slice(), o = U.getInputlessNodes(a);
 			for (; o.length > 0;) {
 				let e = o.pop();
 				i.push(e);
-				for (let t of W.outputEdgesFor(e, a)) {
+				for (let t of U.outputEdgesFor(e, a)) {
 					let e = a.indexOf(t);
-					e > -1 && a.splice(e, 1), W.inputEdgesFor(t.destination, a).length === 0 && o.push(t.destination);
+					e > -1 && a.splice(e, 1), U.inputEdgesFor(t.destination, a).length === 0 && o.push(t.destination);
 				}
 			}
 			for (let e of i) this._sourceNodes.indexOf(e) === -1 && (e._update(this._currentTime), e._render());
@@ -1347,32 +1351,32 @@ var V = "AudioNode", H = class extends s {
 		this._update(0), this._sourceNodes = [], this._processingNodes = [], this._timeline = [], this._currentTime = 0, this._state = t.STATE.PAUSED, this._playbackRate = 1, this._sourcesPlaying = void 0, this._stallStartTime = null, this._seekDebounceTimer !== null && (clearTimeout(this._seekDebounceTimer), this._seekDebounceTimer = null), Object.keys(t.EVENTS).forEach((e) => this._callbacks.set(t.EVENTS[e], [])), this._timelineCallbacks = [];
 	}
 	destroy() {
-		this.reset(), q.unregister(this), window.__VIDEOCONTEXT_REFS__ && delete window.__VIDEOCONTEXT_REFS__[this._id];
+		this.reset(), K.unregister(this), window.__VIDEOCONTEXT_REFS__ && delete window.__VIDEOCONTEXT_REFS__[this._id];
 	}
 	static get DEFINITIONS() {
 		return e;
 	}
 	static get NODES() {
-		return U;
+		return H;
 	}
 	snapshot() {
-		return P(this);
+		return N(this);
 	}
 };
-J.STATE = Object.freeze({
+q.STATE = Object.freeze({
 	PLAYING: 0,
 	PAUSED: 1,
 	STALLED: 2,
 	ENDED: 3,
 	BROKEN: 4
-}), J.EVENTS = Object.freeze({
+}), q.EVENTS = Object.freeze({
 	UPDATE: "update",
 	STALLED: "stalled",
 	ENDED: "ended",
 	CONTENT: "content",
 	NOCONTENT: "nocontent"
-}), J.importSimpleEDL = R;
+}), q.importSimpleEDL = L;
 //#endregion
-export { J as default };
+export { q as default };
 
 //# sourceMappingURL=videocontext.esm.js.map

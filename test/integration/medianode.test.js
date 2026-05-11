@@ -36,6 +36,35 @@ const nodeFactory = (
     return { node, element };
 };
 
+const addVideoFrameCallbackSupport = (element) => {
+    let nextHandle = 1;
+    const callbacks = new Map();
+
+    element.requestVideoFrameCallback = vi.fn((callback) => {
+        const handle = nextHandle++;
+        callbacks.set(handle, callback);
+        return handle;
+    });
+    element.cancelVideoFrameCallback = vi.fn((handle) => {
+        callbacks.delete(handle);
+    });
+
+    return {
+        fire(handle) {
+            const callback = callbacks.get(handle);
+            if (!callback) throw new Error(`No video frame callback for handle ${handle}`);
+            callback(0, {
+                presentationTime: 0,
+                expectedDisplayTime: 0,
+                width: 1920,
+                height: 1080,
+                mediaTime: 0,
+                presentedFrames: handle
+            });
+        }
+    };
+};
+
 /*
  * create a fresh video context with mocked canvas for each test
  * don't useVideoElementCache as unnecessary for these tests and would need to be patched with a mock.
@@ -166,6 +195,61 @@ describe("medianode", () => {
             await Promise.resolve();
 
             expect(element.play.mock.calls.length).toBe(callsAfterFirst);
+        });
+    });
+
+    describe("requestVideoFrameCallback lifecycle", () => {
+        it("chains callbacks while a supported video element is playing", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const firstHandle = node._rvfcHandle;
+            expect(node._usesVideoFrameCallback).toBe(true);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledOnce();
+
+            videoFrames.fire(firstHandle);
+
+            expect(node._hasNewFrame).toBe(true);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledTimes(2);
+            expect(node._rvfcHandle).not.toBe(firstHandle);
+        });
+
+        it("re-registers a callback after seeking while playing", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const firstHandle = node._rvfcHandle;
+            node._seek(2);
+
+            expect(element.cancelVideoFrameCallback).toHaveBeenCalledWith(firstHandle);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledTimes(2);
+            expect(node._rvfcHandle).not.toBe(firstHandle);
+            expect(node._hasNewFrame).toBe(true);
+        });
+
+        it("does not enable frame gating when callback methods are unavailable", () => {
+            const { node, element } = nodeFactory(ctx);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            expect(node._usesVideoFrameCallback).toBe(false);
+            expect(node._rvfcHandle).toBeNull();
         });
     });
 

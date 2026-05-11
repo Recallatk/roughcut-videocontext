@@ -28,6 +28,7 @@ class SourceNode extends GraphNode {
     _callbacks: Array<{ type: string; func: (...args: any[]) => void }>;
     _renderPaused: boolean;
     _hasNewFrame: boolean | undefined;
+    _usesVideoFrameCallback: boolean;
 
     /**
      * Initialise an instance of a SourceNode.
@@ -72,6 +73,7 @@ class SourceNode extends GraphNode {
         );
         this._callbacks = [];
         this._renderPaused = false;
+        this._usesVideoFrameCallback = false;
         this._displayName = TYPE;
     }
 
@@ -411,13 +413,19 @@ class SourceNode extends GraphNode {
         if (this._element === undefined || this._ready === false) return true;
 
         if (!this._renderPaused && this._state === STATE.paused) {
-            if (triggerTextureUpdate) updateTexture(this._gl, this._texture, this._element);
+            if (triggerTextureUpdate) {
+                updateTexture(this._gl, this._texture, this._element);
+                if (this._usesVideoFrameCallback) this._hasNewFrame = false;
+            }
             this._renderPaused = true;
         }
         if (this._state === STATE.playing) {
-            if (triggerTextureUpdate && this._hasNewFrame !== false) {
+            if (
+                triggerTextureUpdate &&
+                (!this._usesVideoFrameCallback || this._hasNewFrame === true)
+            ) {
                 updateTexture(this._gl, this._texture, this._element);
-                this._hasNewFrame = false;
+                if (this._usesVideoFrameCallback) this._hasNewFrame = false;
             }
             if (this._stretchPaused) {
                 this._stopTime += timeDelta;

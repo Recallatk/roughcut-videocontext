@@ -1,10 +1,6 @@
 //Matthew Shotton, R&D User Experience,© BBC 2015
 import SourceNode, { SOURCENODESTATE } from "./sourcenode";
 
-const _rvfcSupported =
-    typeof HTMLVideoElement !== "undefined" &&
-    "requestVideoFrameCallback" in HTMLVideoElement.prototype;
-
 class MediaNode extends SourceNode {
     _preloadTime: number;
     _sourceOffset: number;
@@ -224,13 +220,24 @@ class MediaNode extends SourceNode {
         this._rvfcHandle = null;
     }
 
+    _canUseVideoFrameCallback() {
+        const isMediaStreamSource =
+            typeof MediaStream !== "undefined" &&
+            (this._elementURL instanceof MediaStream ||
+                this._element?.srcObject instanceof MediaStream);
+
+        return (
+            this._elementType === "video" &&
+            !isMediaStreamSource &&
+            this._element !== undefined &&
+            typeof this._element.requestVideoFrameCallback === "function" &&
+            typeof this._element.cancelVideoFrameCallback === "function"
+        );
+    }
+
     _registerVideoFrameCallback() {
-        if (
-            !_rvfcSupported ||
-            this._elementType !== "video" ||
-            !this._element ||
-            this._rvfcHandle !== null
-        ) {
+        this._usesVideoFrameCallback = this._canUseVideoFrameCallback();
+        if (!this._usesVideoFrameCallback || this._rvfcHandle !== null) {
             return;
         }
         this._rvfcHandle = this._element.requestVideoFrameCallback(() => {
@@ -263,6 +270,7 @@ class MediaNode extends SourceNode {
         this._ready = false;
         this._isElementPlaying = false;
         this._hasNewFrame = true;
+        this._usesVideoFrameCallback = false;
         // For completeness. I couldn't find a path that required reuse of this._loadTriggered after _unload.
         this._loadTriggered = false;
     }
@@ -276,6 +284,7 @@ class MediaNode extends SourceNode {
             const relativeTime = this._currentTime - this._startTime + this._sourceOffset;
             this._element.currentTime = relativeTime;
             this._ready = false;
+            if (this.state === SOURCENODESTATE.playing) this._registerVideoFrameCallback();
         }
         if (
             (this._state === SOURCENODESTATE.sequenced || this._state === SOURCENODESTATE.ended) &&
@@ -313,6 +322,7 @@ class MediaNode extends SourceNode {
                 this._element.play().catch((e: any) => {
                     // Always reset the flag — either we retry (AbortError) or we enter
                     // the error state.  Never leave _isElementPlaying stuck true.
+                    this._cancelVideoFrameCallback();
                     this._isElementPlaying = false;
                     if (e.name === "AbortError") {
                         // Interrupted by a concurrent seek/pause — will retry next update
