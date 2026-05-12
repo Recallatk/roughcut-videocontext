@@ -451,7 +451,7 @@ var e = {
 	}
 }, o = class extends a {
 	constructor(e, t, n, r, i = 1, a = 0, o = 4, s = void 0, c = {}) {
-		super(e, t, n, r), this._preloadTime = o, this._sourceOffset = a, this._globalPlaybackRate = i, this._mediaElementCache = s, this._playbackRate = 1, this._playbackRateUpdated = !0, this._attributes = Object.assign({ volume: 1 }, c), this._loopElement = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._rvfcHandle = null, this._attributes.loop && (this._loopElement = this._attributes.loop);
+		super(e, t, n, r), this._preloadTime = o, this._sourceOffset = a, this._globalPlaybackRate = i, this._mediaElementCache = s, this._playbackRate = 1, this._playbackRateUpdated = !0, this._attributes = Object.assign({ volume: 1 }, c), this._loopElement = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._rvfcHandle = null, this._resetDebugMetrics(), this._attributes.loop && (this._loopElement = this._attributes.loop);
 	}
 	set playbackRate(e) {
 		this._playbackRate = e, this._playbackRateUpdated = !0;
@@ -497,9 +497,20 @@ var e = {
 		return this._elementType === "video" && !e && this._element !== void 0 && typeof this._element.requestVideoFrameCallback == "function" && typeof this._element.cancelVideoFrameCallback == "function";
 	}
 	_registerVideoFrameCallback() {
-		this._usesVideoFrameCallback = this._canUseVideoFrameCallback(), !(!this._usesVideoFrameCallback || this._rvfcHandle !== null) && (this._rvfcHandle = this._element.requestVideoFrameCallback(() => {
-			this._hasNewFrame = !0, this._rvfcHandle = null, this._state === r.playing && this._registerVideoFrameCallback();
+		this._usesVideoFrameCallback = this._canUseVideoFrameCallback(), !(!this._usesVideoFrameCallback || this._rvfcHandle !== null) && (this._rvfcHandle = this._element.requestVideoFrameCallback((e, t) => {
+			this._hasNewFrame = !0, this._rvfcHandle = null, this._debugMetrics.callbackCount++;
+			let n = this._debugMetrics.lastPresentedFrames;
+			this._debugMetrics.lastMediaTime = t.mediaTime, this._debugMetrics.lastPresentedFrames = t.presentedFrames, n > 0 && t.presentedFrames > n + 1 && (this._debugMetrics.skippedFrames += t.presentedFrames - n - 1), this._state === r.playing && this._registerVideoFrameCallback();
 		}));
+	}
+	_resetDebugMetrics() {
+		this._debugMetrics = {
+			callbackCount: 0,
+			uploadCount: 0,
+			lastMediaTime: -1,
+			lastPresentedFrames: 0,
+			skippedFrames: 0
+		};
 	}
 	_unload() {
 		if (this._cancelVideoFrameCallback(), super._unload(), this._isResponsibleForElementLifeCycle && this._element !== void 0) {
@@ -507,7 +518,7 @@ var e = {
 			for (let e in this._attributes) this._element.removeAttribute(e);
 			this._mediaElementCache && this._mediaElementCache.unlinkNodeFromElement(this._element), this._element = void 0, this._mediaElementCache || delete this._element;
 		}
-		this._ready = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._usesVideoFrameCallback = !1, this._loadTriggered = !1;
+		this._ready = !1, this._isElementPlaying = !1, this._hasNewFrame = !0, this._usesVideoFrameCallback = !1, this._resetDebugMetrics(), this._loadTriggered = !1;
 	}
 	_seek(e) {
 		if (this._cancelVideoFrameCallback(), this._hasNewFrame = !0, super._seek(e), this.state === r.playing || this.state === r.paused) {
@@ -518,7 +529,7 @@ var e = {
 		(this._state === r.sequenced || this._state === r.ended) && this._element !== void 0 && this._unload();
 	}
 	_update(e, t = !0) {
-		return super._update(e, t), this._element !== void 0 && this._element.ended && (this._state = r.ended, this._triggerCallbacks("ended")), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing ? (this._playbackRateUpdated &&= (this._element.playbackRate = this._globalPlaybackRate * this._playbackRate, !1), this._isElementPlaying || (this._isElementPlaying = !0, this._registerVideoFrameCallback(), this._element.play().catch((e) => {
+		return super._update(e, t), this._textureChanged && !this._textureIsCleared && this._debugMetrics.uploadCount++, this._element !== void 0 && this._element.ended && (this._state = r.ended, this._triggerCallbacks("ended")), this._startTime - this._currentTime <= this._preloadTime && this._state !== r.waiting && this._state !== r.ended && this._load(), this._state === r.playing ? (this._playbackRateUpdated &&= (this._element.playbackRate = this._globalPlaybackRate * this._playbackRate, !1), this._isElementPlaying || (this._isElementPlaying = !0, this._registerVideoFrameCallback(), this._element.play().catch((e) => {
 			this._cancelVideoFrameCallback(), this._isElementPlaying = !1, e.name !== "AbortError" && (console.debug("MediaNode play() failed:", e), this._state = r.error, this._ready = !0, this._triggerCallbacks("error"));
 		}), this._stretchPaused && this._element.pause()), !0) : this._state === r.paused ? (this._cancelVideoFrameCallback(), this._element.pause(), this._isElementPlaying = !1, !0) : this._state === r.ended && this._element !== void 0 ? (this._element.pause(), this._isElementPlaying && this._unload(), !1) : !1;
 	}
