@@ -815,9 +815,17 @@ var e = {
 //#endregion
 //#region src/utils.ts
 function D(e, t, n) {
-	let r = e.createShader(n);
-	if (e.shaderSource(r, t), e.compileShader(r), !e.getShaderParameter(r, e.COMPILE_STATUS)) throw "could not compile shader:" + e.getShaderInfoLog(r);
-	return r;
+	let r = () => {
+		let r = e.createShader(n);
+		return e.shaderSource(r, t), e.compileShader(r), {
+			shader: r,
+			success: e.getShaderParameter(r, e.COMPILE_STATUS),
+			infoLog: e.getShaderInfoLog(r)
+		};
+	}, { shader: i, success: a, infoLog: o } = r();
+	for (let t = 0; !a && !o && t < 3; t++) e.deleteShader(i), {shader: i, success: a, infoLog: o} = r();
+	if (!a) throw "could not compile shader:" + o;
+	return i;
 }
 function O(e, t, n) {
 	let r = e.createProgram();
