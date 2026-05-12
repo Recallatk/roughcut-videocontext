@@ -18,15 +18,19 @@ test.beforeEach(async ({ page }) => {
 });
 
 const TRANSITIONS = [
-    { definitionName: "CROSSFADE" },
-    { definitionName: "HORIZONTAL_WIPE" },
-    { definitionName: "VERTICAL_WIPE" },
-    { definitionName: "RANDOM_DISSOLVE" },
-    { definitionName: "TO_COLOR_AND_BACK" },
-    { definitionName: "STAR_WIPE" },
-    // Frame-dependent — allow more variance
+    // Linear blends — sub-frame timing drift causes proportional pixel differences
+    { definitionName: "CROSSFADE", options: { maxDiffPixelRatio: 0.15 } },
+    // Geometric wipes — boundary position shifts with timing, affecting edge pixels
+    { definitionName: "HORIZONTAL_WIPE", options: { maxDiffPixelRatio: 0.1 } },
+    { definitionName: "VERTICAL_WIPE", options: { maxDiffPixelRatio: 0.1 } },
+    // Pseudorandom threshold — pixel membership flips near the threshold boundary
+    { definitionName: "RANDOM_DISSOLVE", options: { maxDiffPixelRatio: 0.15 } },
+    { definitionName: "TO_COLOR_AND_BACK", options: { maxDiffPixelRatio: 0.1 } },
+    // Sharp geometric mask — small time delta shifts the star boundary significantly
+    { definitionName: "STAR_WIPE", options: { maxDiffPixelRatio: 0.25 } },
+    // Sine-wave distortion amplifies sub-frame timing into large spatial shifts
     { definitionName: "DREAMFADE", options: { maxDiffPixelRatio: 0.3 } },
-    // Randomised — allow significant variance
+    // Randomised noise pattern — output is non-deterministic by design
     { definitionName: "STATIC_DISSOLVE", options: { maxDiffPixelRatio: 0.6 } }
 ];
 

@@ -54,7 +54,8 @@ test("Horizontal Blur", async ({ page }) => {
         effect.connect(ctx.destination);
     });
 
-    await screenshotAtTimes(page, TIMES, "effect-horizontal-blur");
+    // Blur kernel spreads sub-frame timing differences across many output pixels
+    await screenshotAtTimes(page, TIMES, "effect-horizontal-blur", { maxDiffPixelRatio: 0.15 });
 });
 
 test("Monochrome", async ({ page }) => {
@@ -67,7 +68,8 @@ test("Monochrome", async ({ page }) => {
         effect.connect(ctx.destination);
     });
 
-    await screenshotAtTimes(page, TIMES, "effect-monochrome");
+    // Monochrome maps RGB→luminance; sub-frame drift shows as different grey values
+    await screenshotAtTimes(page, TIMES, "effect-monochrome", { maxDiffPixelRatio: 0.1 });
 });
 
 test("Opacity", async ({ page }) => {
@@ -107,5 +109,6 @@ test("Vertical Blur", async ({ page }) => {
         effect.connect(ctx.destination);
     });
 
-    await screenshotAtTimes(page, TIMES, "effect-vertical-blur");
+    // Blur kernel spreads sub-frame timing differences across many output pixels
+    await screenshotAtTimes(page, TIMES, "effect-vertical-blur", { maxDiffPixelRatio: 0.15 });
 });

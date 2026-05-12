@@ -10,6 +10,9 @@ export default defineConfig({
     // Retry flaky tests in CI
     retries: process.env.CI ? 2 : 0,
 
+    // WebGL + SwiftShader cannot reliably share a single GPU across workers
+    workers: 1,
+
     use: {
         baseURL: "http://localhost:3001",
         // Match Cypress macbook-11 viewport
