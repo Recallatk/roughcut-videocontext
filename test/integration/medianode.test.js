@@ -290,4 +290,169 @@ describe("medianode", () => {
             expect(element._currentTimeSetter).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe("paused seek with rVFC", () => {
+        it("seek while paused sets _hasNewFrame = true immediately", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            // Play briefly to get the node loaded and rVFC registered
+            ctx.play();
+            ctx.update(1);
+            expect(node._usesVideoFrameCallback).toBe(true);
+
+            // Pause — puts source into paused state
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Seek while paused
+            node._seek(3);
+
+            // _hasNewFrame must be true so the next update uploads a fresh texture
+            expect(node._hasNewFrame).toBe(true);
+        });
+
+        it("update after paused seek produces _textureChanged = true", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            // Pause
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Consume the initial paused-frame upload
+            expect(node._textureChanged).toBe(true);
+            // Simulate that the paused frame is now rendered
+            node._renderPaused = true;
+            node._textureChanged = false;
+
+            // Seek while paused — forces fresh frame
+            node._seek(4);
+            expect(node._hasNewFrame).toBe(true);
+
+            // MediaNode._seek sets _ready = false (element is seeking).
+            // Simulate the element finishing its seek.
+            node._ready = true;
+
+            // Next update should upload the texture and set _textureChanged
+            node._update(4);
+            expect(node._textureChanged).toBe(true);
+        });
+
+        it("seek while paused does NOT register a new rVFC callback (no chaining when paused)", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const callsBefore = element.requestVideoFrameCallback.mock.calls.length;
+
+            // Pause
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Seek while paused
+            node._seek(5);
+
+            // Should NOT have registered a new callback (node is paused, not playing)
+            expect(element.requestVideoFrameCallback.mock.calls.length).toBe(callsBefore);
+            expect(node._rvfcHandle).toBeNull();
+        });
+
+        it("paused seek does not freeze: subsequent update still uploads once element is ready", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            // Pause and render the paused frame
+            ctx.pause();
+            ctx.update(0.016);
+            node._renderPaused = true;
+            node._textureChanged = false;
+            node._hasNewFrame = false; // simulate rVFC not fired (paused)
+
+            // Seek while paused — this is the critical path
+            node._seek(6);
+
+            // _hasNewFrame is forced true by _seek(), bypassing the rVFC requirement
+            expect(node._hasNewFrame).toBe(true);
+            // _ready is false (element is seeking) — this is expected
+            expect(node._ready).toBe(false);
+
+            // Simulate element finishing its seek (browser would fire 'seeked' event)
+            node._ready = true;
+
+            // Update — because _hasNewFrame is true and element is ready,
+            // the node will upload the texture (no freeze)
+            node._update(6);
+            expect(node._textureChanged).toBe(true);
+        });
+    });
+
+    describe("MediaStream rVFC exclusion", () => {
+        it("does not enable rVFC for MediaStream sources", () => {
+            const originalGlobalMediaStream = global.MediaStream;
+            const originalWindowMediaStream = global.window.MediaStream;
+            // Mock MediaStream in the test environment
+            const MockMediaStream = class MockMediaStream {};
+
+            try {
+                global.MediaStream = MockMediaStream;
+                global.window.MediaStream = MockMediaStream;
+
+                const stream = new MockMediaStream();
+                const canvas = new HTMLCanvasElement(100, 100);
+                const streamCtx = new VideoContext(canvas, undefined, {
+                    useVideoElementCache: false
+                });
+
+                // Create a video node with the mock MediaStream
+                const node = streamCtx.video(stream);
+                node.start(0);
+                node.stop(10);
+
+                // Force a load so the element is created, then patch it before play
+                node._load();
+                expect(node._element).toBeDefined();
+
+                // Patch the real DOM element with mocks
+                node._element.requestVideoFrameCallback = vi.fn();
+                node._element.cancelVideoFrameCallback = vi.fn();
+                node._element.play = vi.fn().mockResolvedValue(undefined);
+                node._element.pause = vi.fn();
+                Object.defineProperty(node._element, "readyState", {
+                    value: 4,
+                    writable: true
+                });
+
+                streamCtx.play();
+                streamCtx.update(1);
+
+                // Must NOT use video frame callbacks for MediaStream
+                expect(node._usesVideoFrameCallback).toBe(false);
+                expect(node._rvfcHandle).toBeNull();
+            } finally {
+                global.MediaStream = originalGlobalMediaStream;
+                global.window.MediaStream = originalWindowMediaStream;
+            }
+        });
+    });
 });
