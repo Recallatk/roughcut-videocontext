@@ -949,13 +949,12 @@ export default class VideoContext {
                 this._sourcesPlaying = sourcesPlaying;
             }
 
-            // When the VideoContext is explicitly paused and every source has rendered
-            // its paused frame (_renderPaused = true), there is nothing new to show.
-            // With preserveDrawingBuffer:true the canvas retains the last composite, so
-            // we can safely skip all shader passes until something changes.
-            // During playback we always composite (same behaviour as before this change)
-            // so that video timing, stall recovery, and snapshot tests remain stable.
-            if (this._state === VideoContext.STATE.PAUSED) {
+            // When paused, skip the full render-graph pass if nothing has changed.
+            // Safe only when there are no processing nodes (effects, transitions,
+            // compositors) — those may have had uniforms changed externally and we
+            // have no dirty-tracking for that yet. With preserveDrawingBuffer:true
+            // the canvas retains the last composite output.
+            if (this._state === VideoContext.STATE.PAUSED && this._processingNodes.length === 0) {
                 const needsComposite = this._sourceNodes.some(
                     (n) => n._textureChanged || !n._renderPaused
                 );
