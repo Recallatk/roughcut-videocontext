@@ -949,6 +949,19 @@ export default class VideoContext {
                 this._sourcesPlaying = sourcesPlaying;
             }
 
+            // When the VideoContext is explicitly paused and every source has rendered
+            // its paused frame (_renderPaused = true), there is nothing new to show.
+            // With preserveDrawingBuffer:true the canvas retains the last composite, so
+            // we can safely skip all shader passes until something changes.
+            // During playback we always composite (same behaviour as before this change)
+            // so that video timing, stall recovery, and snapshot tests remain stable.
+            if (this._state === VideoContext.STATE.PAUSED) {
+                const needsComposite = this._sourceNodes.some(
+                    (n) => n._textureChanged || !n._renderPaused
+                );
+                if (!needsComposite) return;
+            }
+
             /*
              * Itterate the directed acyclic graph using Khan's algorithm (KHAAAAAN!).
              *

@@ -29,6 +29,8 @@ class SourceNode extends GraphNode {
     _renderPaused: boolean;
     _hasNewFrame: boolean | undefined;
     _usesVideoFrameCallback: boolean;
+    _textureChanged: boolean;
+    _textureIsCleared: boolean;
 
     /**
      * Initialise an instance of a SourceNode.
@@ -74,6 +76,8 @@ class SourceNode extends GraphNode {
         this._callbacks = [];
         this._renderPaused = false;
         this._usesVideoFrameCallback = false;
+        this._textureChanged = false;
+        this._textureIsCleared = false;
         this._displayName = TYPE;
     }
 
@@ -320,6 +324,7 @@ class SourceNode extends GraphNode {
 
     _seek(time: number) {
         this._renderPaused = false;
+        this._textureIsCleared = false;
 
         this._triggerCallbacks("seek", time);
 
@@ -374,6 +379,7 @@ class SourceNode extends GraphNode {
 
     _update(currentTime: number, triggerTextureUpdate = true) {
         this._rendered = true;
+        this._textureChanged = false;
         const timeDelta = currentTime - this._currentTime;
 
         //update the current time
@@ -390,7 +396,11 @@ class SourceNode extends GraphNode {
         this._triggerCallbacks("render", currentTime);
 
         if (currentTime < this._startTime) {
-            clearTexture(this._gl, this._texture);
+            if (!this._textureIsCleared) {
+                clearTexture(this._gl, this._texture);
+                this._textureIsCleared = true;
+                this._textureChanged = true;
+            }
             this._state = STATE.sequenced;
         }
 
@@ -404,7 +414,11 @@ class SourceNode extends GraphNode {
         }
 
         if (currentTime >= this._stopTime) {
-            clearTexture(this._gl, this._texture);
+            if (!this._textureIsCleared) {
+                clearTexture(this._gl, this._texture);
+                this._textureIsCleared = true;
+                this._textureChanged = true;
+            }
             this._triggerCallbacks("ended");
             this._state = STATE.ended;
         }
@@ -415,6 +429,8 @@ class SourceNode extends GraphNode {
         if (!this._renderPaused && this._state === STATE.paused) {
             if (triggerTextureUpdate) {
                 updateTexture(this._gl, this._texture, this._element);
+                this._textureChanged = true;
+                this._textureIsCleared = false;
                 if (this._usesVideoFrameCallback) this._hasNewFrame = false;
             }
             this._renderPaused = true;
@@ -425,6 +441,8 @@ class SourceNode extends GraphNode {
                 (!this._usesVideoFrameCallback || this._hasNewFrame === true)
             ) {
                 updateTexture(this._gl, this._texture, this._element);
+                this._textureChanged = true;
+                this._textureIsCleared = false;
                 if (this._usesVideoFrameCallback) this._hasNewFrame = false;
             }
             if (this._stretchPaused) {
