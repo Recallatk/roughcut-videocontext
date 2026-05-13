@@ -949,6 +949,18 @@ export default class VideoContext {
                 this._sourcesPlaying = sourcesPlaying;
             }
 
+            // When paused, skip the full render-graph pass if nothing has changed.
+            // Safe only when there are no processing nodes (effects, transitions,
+            // compositors) — those may have had uniforms changed externally and we
+            // have no dirty-tracking for that yet. With preserveDrawingBuffer:true
+            // the canvas retains the last composite output.
+            if (this._state === VideoContext.STATE.PAUSED && this._processingNodes.length === 0) {
+                const needsComposite = this._sourceNodes.some(
+                    (n) => n._textureChanged || !n._renderPaused
+                );
+                if (!needsComposite) return;
+            }
+
             /*
              * Itterate the directed acyclic graph using Khan's algorithm (KHAAAAAN!).
              *

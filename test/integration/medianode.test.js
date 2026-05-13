@@ -36,6 +36,36 @@ const nodeFactory = (
     return { node, element };
 };
 
+const addVideoFrameCallbackSupport = (element) => {
+    let nextHandle = 1;
+    const callbacks = new Map();
+
+    element.requestVideoFrameCallback = vi.fn((callback) => {
+        const handle = nextHandle++;
+        callbacks.set(handle, callback);
+        return handle;
+    });
+    element.cancelVideoFrameCallback = vi.fn((handle) => {
+        callbacks.delete(handle);
+    });
+
+    return {
+        fire(handle, metadataOverrides = {}) {
+            const callback = callbacks.get(handle);
+            if (!callback) throw new Error(`No video frame callback for handle ${handle}`);
+            callback(0, {
+                presentationTime: 0,
+                expectedDisplayTime: 0,
+                width: 1920,
+                height: 1080,
+                mediaTime: 0,
+                presentedFrames: handle,
+                ...metadataOverrides
+            });
+        }
+    };
+};
+
 /*
  * create a fresh video context with mocked canvas for each test
  * don't useVideoElementCache as unnecessary for these tests and would need to be patched with a mock.
@@ -169,6 +199,61 @@ describe("medianode", () => {
         });
     });
 
+    describe("requestVideoFrameCallback lifecycle", () => {
+        it("chains callbacks while a supported video element is playing", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const firstHandle = node._rvfcHandle;
+            expect(node._usesVideoFrameCallback).toBe(true);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledOnce();
+
+            videoFrames.fire(firstHandle);
+
+            expect(node._hasNewFrame).toBe(true);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledTimes(2);
+            expect(node._rvfcHandle).not.toBe(firstHandle);
+        });
+
+        it("re-registers a callback after seeking while playing", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const firstHandle = node._rvfcHandle;
+            node._seek(2);
+
+            expect(element.cancelVideoFrameCallback).toHaveBeenCalledWith(firstHandle);
+            expect(element.requestVideoFrameCallback).toHaveBeenCalledTimes(2);
+            expect(node._rvfcHandle).not.toBe(firstHandle);
+            expect(node._hasNewFrame).toBe(true);
+        });
+
+        it("does not enable frame gating when callback methods are unavailable", () => {
+            const { node, element } = nodeFactory(ctx);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            expect(node._usesVideoFrameCallback).toBe(false);
+            expect(node._rvfcHandle).toBeNull();
+        });
+    });
+
     describe("currentTime on provided element", () => {
         it("element.currentTime should equal ctx.currentTime be zero after load if no sourceOffset is given", () => {
             const { element } = nodeFactory(ctx, {}, { sourceOffset: undefined });
@@ -204,6 +289,297 @@ describe("medianode", () => {
             ctx.update(4);
 
             expect(element._currentTimeSetter).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("paused seek with rVFC", () => {
+        it("seek while paused sets _hasNewFrame = true immediately", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            // Play briefly to get the node loaded and rVFC registered
+            ctx.play();
+            ctx.update(1);
+            expect(node._usesVideoFrameCallback).toBe(true);
+
+            // Pause — puts source into paused state
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Seek while paused
+            node._seek(3);
+
+            // _hasNewFrame must be true so the next update uploads a fresh texture
+            expect(node._hasNewFrame).toBe(true);
+        });
+
+        it("update after paused seek produces _textureChanged = true", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            // Pause
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Consume the initial paused-frame upload
+            expect(node._textureChanged).toBe(true);
+            // Simulate that the paused frame is now rendered
+            node._renderPaused = true;
+            node._textureChanged = false;
+
+            // Seek while paused — forces fresh frame
+            node._seek(4);
+            expect(node._hasNewFrame).toBe(true);
+
+            // MediaNode._seek sets _ready = false (element is seeking).
+            // Simulate the element finishing its seek.
+            node._ready = true;
+
+            // Next update should upload the texture and set _textureChanged
+            node._update(4);
+            expect(node._textureChanged).toBe(true);
+        });
+
+        it("seek while paused does NOT register a new rVFC callback (no chaining when paused)", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            const callsBefore = element.requestVideoFrameCallback.mock.calls.length;
+
+            // Pause
+            ctx.pause();
+            ctx.update(0.016);
+
+            // Seek while paused
+            node._seek(5);
+
+            // Should NOT have registered a new callback (node is paused, not playing)
+            expect(element.requestVideoFrameCallback.mock.calls.length).toBe(callsBefore);
+            expect(node._rvfcHandle).toBeNull();
+        });
+
+        it("paused seek does not freeze: subsequent update still uploads once element is ready", () => {
+            const { node, element } = nodeFactory(ctx);
+            addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            // Pause and render the paused frame
+            ctx.pause();
+            ctx.update(0.016);
+            node._renderPaused = true;
+            node._textureChanged = false;
+            node._hasNewFrame = false; // simulate rVFC not fired (paused)
+
+            // Seek while paused — this is the critical path
+            node._seek(6);
+
+            // _hasNewFrame is forced true by _seek(), bypassing the rVFC requirement
+            expect(node._hasNewFrame).toBe(true);
+            // _ready is false (element is seeking) — this is expected
+            expect(node._ready).toBe(false);
+
+            // Simulate element finishing its seek (browser would fire 'seeked' event)
+            node._ready = true;
+
+            // Update — because _hasNewFrame is true and element is ready,
+            // the node will upload the texture (no freeze)
+            node._update(6);
+            expect(node._textureChanged).toBe(true);
+        });
+    });
+
+    describe("MediaStream rVFC exclusion", () => {
+        it("does not enable rVFC for MediaStream sources", () => {
+            const originalGlobalMediaStream = global.MediaStream;
+            const originalWindowMediaStream = global.window.MediaStream;
+            // Mock MediaStream in the test environment
+            const MockMediaStream = class MockMediaStream {};
+
+            try {
+                global.MediaStream = MockMediaStream;
+                global.window.MediaStream = MockMediaStream;
+
+                const stream = new MockMediaStream();
+                const canvas = new HTMLCanvasElement(100, 100);
+                const streamCtx = new VideoContext(canvas, undefined, {
+                    useVideoElementCache: false
+                });
+
+                // Create a video node with the mock MediaStream
+                const node = streamCtx.video(stream);
+                node.start(0);
+                node.stop(10);
+
+                // Force a load so the element is created, then patch it before play
+                node._load();
+                expect(node._element).toBeDefined();
+
+                // Patch the real DOM element with mocks
+                node._element.requestVideoFrameCallback = vi.fn();
+                node._element.cancelVideoFrameCallback = vi.fn();
+                node._element.play = vi.fn().mockResolvedValue(undefined);
+                node._element.pause = vi.fn();
+                Object.defineProperty(node._element, "readyState", {
+                    value: 4,
+                    writable: true
+                });
+
+                streamCtx.play();
+                streamCtx.update(1);
+
+                // Must NOT use video frame callbacks for MediaStream
+                expect(node._usesVideoFrameCallback).toBe(false);
+                expect(node._rvfcHandle).toBeNull();
+            } finally {
+                global.MediaStream = originalGlobalMediaStream;
+                global.window.MediaStream = originalWindowMediaStream;
+            }
+        });
+    });
+
+    describe("_debugMetrics", () => {
+        it("initialises with zeroed metrics", () => {
+            const { node } = nodeFactory(ctx);
+            expect(node._debugMetrics).toEqual({
+                callbackCount: 0,
+                uploadCount: 0,
+                lastMediaTime: -1,
+                lastPresentedFrames: 0,
+                skippedFrames: 0
+            });
+        });
+
+        it("tracks callback count and metadata from rVFC", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.5,
+                presentedFrames: 10
+            });
+            expect(node._debugMetrics.callbackCount).toBe(1);
+            expect(node._debugMetrics.lastMediaTime).toBe(0.5);
+            expect(node._debugMetrics.lastPresentedFrames).toBe(10);
+
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 1.0,
+                presentedFrames: 11
+            });
+            expect(node._debugMetrics.callbackCount).toBe(2);
+            expect(node._debugMetrics.lastMediaTime).toBe(1.0);
+            expect(node._debugMetrics.lastPresentedFrames).toBe(11);
+        });
+
+        it("counts skipped frames from presentedFrames gaps", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1);
+
+            // First callback — no skipped frames (no previous reference)
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.04,
+                presentedFrames: 5
+            });
+            expect(node._debugMetrics.skippedFrames).toBe(0);
+
+            // Consecutive frame — no skip
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.08,
+                presentedFrames: 6
+            });
+            expect(node._debugMetrics.skippedFrames).toBe(0);
+
+            // Gap of 3 frames (presentedFrames jumps from 6 to 10)
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.2,
+                presentedFrames: 10
+            });
+            expect(node._debugMetrics.skippedFrames).toBe(3);
+        });
+
+        it("tracks upload count during playback", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1); // sets _ready = true
+            ctx.update(1.04); // first upload now that _ready is true
+            expect(node._debugMetrics.uploadCount).toBe(1);
+
+            // Fire rVFC → _hasNewFrame = true → next update uploads
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.1,
+                presentedFrames: 1
+            });
+            ctx.update(1.08);
+            expect(node._debugMetrics.uploadCount).toBe(2);
+
+            // No rVFC fired → _hasNewFrame = false → no upload
+            ctx.update(1.12);
+            expect(node._debugMetrics.uploadCount).toBe(2);
+        });
+
+        it("resets metrics on unload", () => {
+            const { node, element } = nodeFactory(ctx);
+            const videoFrames = addVideoFrameCallbackSupport(element);
+            element.readyState = 4;
+            element.duration = 10;
+            element.play = vi.fn().mockResolvedValue(undefined);
+
+            ctx.play();
+            ctx.update(1); // sets _ready = true
+            ctx.update(1.04); // triggers upload
+
+            videoFrames.fire(node._rvfcHandle, {
+                mediaTime: 0.5,
+                presentedFrames: 5
+            });
+            expect(node._debugMetrics.callbackCount).toBe(1);
+            expect(node._debugMetrics.uploadCount).toBe(1);
+
+            // Seek past stopTime to trigger unload
+            ctx.currentTime = 11;
+            ctx.update(11);
+
+            expect(node._debugMetrics.callbackCount).toBe(0);
+            expect(node._debugMetrics.uploadCount).toBe(0);
+            expect(node._debugMetrics.lastMediaTime).toBe(-1);
+            expect(node._debugMetrics.lastPresentedFrames).toBe(0);
+            expect(node._debugMetrics.skippedFrames).toBe(0);
         });
     });
 });

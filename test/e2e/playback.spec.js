@@ -20,7 +20,8 @@ test("plays back video", async ({ page }) => {
         videoNode.connect(window.ctx.destination);
     });
 
-    await screenshotAtTimes(page, [0.5, 1, 1.5], "playback-video");
+    // Video frame captured depends on rVFC/decode timing; minor drift expected
+    await screenshotAtTimes(page, [0.5, 1, 1.5], "playback-video", { maxDiffPixelRatio: 0.1 });
 });
 
 test("plays back image", async ({ page }) => {

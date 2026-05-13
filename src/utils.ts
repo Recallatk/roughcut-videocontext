@@ -19,12 +19,29 @@ import { COMPOSITINGTYPE } from "./ProcessingNodes/compositingnode.js";
  *
  */
 export function compileShader(gl: WebGLRenderingContext, shaderSource: string, shaderType: number) {
-    const shader = gl.createShader(shaderType)!;
-    gl.shaderSource(shader, shaderSource);
-    gl.compileShader(shader);
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const compile = () => {
+        const shader = gl.createShader(shaderType)!;
+        gl.shaderSource(shader, shaderSource);
+        gl.compileShader(shader);
+        return {
+            shader,
+            success: gl.getShaderParameter(shader, gl.COMPILE_STATUS),
+            infoLog: gl.getShaderInfoLog(shader)
+        };
+    };
+
+    let { shader, success, infoLog } = compile();
+
+    // Newer SwiftShader builds can occasionally report a cold-start compile
+    // failure with no diagnostic for otherwise valid shaders. Retry briefly so
+    // transient compiler startup state does not break graph creation.
+    for (let attempt = 0; !success && !infoLog && attempt < 3; attempt++) {
+        gl.deleteShader(shader);
+        ({ shader, success, infoLog } = compile());
+    }
+
     if (!success) {
-        throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+        throw "could not compile shader:" + infoLog;
     }
     return shader;
 }
